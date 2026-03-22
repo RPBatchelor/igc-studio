@@ -1,73 +1,117 @@
-# React + TypeScript + Vite
+# IGC Studio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A desktop application for visualising paragliding flight logs, built by a pilot who thought every existing tool was terrible.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Flight log browser** — navigate your local flight library organised by year and site
+- **3D map visualisation** — flight tracks rendered on an interactive CesiumJS globe with OpenStreetMap base layer
+- **Pilot marker** — animated position indicator that moves along the track as you scrub through the timeline
+- **Flight statistics** — duration, max/min altitude, altitude gain, max/avg speed, total distance
+- **Live charts** — altitude, speed and distance profiles with a synced playback cursor
+- **Timeline scrubber** — play, pause, jump to start/end, and control playback speed (1x–50x)
+- **Map layer switcher** — toggle between OpenStreetMap, satellite imagery, road overlays and 3D terrain
+- **VSCode-style UI** — activity bar, collapsible side panels, dark theme
 
-## React Compiler
+## Supported Formats
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Format | Extension | Notes |
+|--------|-----------|-------|
+| IGC    | `.igc`    | Standard FAI flight recorder format |
+| KML    | `.kml`    | Google Earth format |
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Layer | Technology |
+|-------|-----------|
+| Desktop shell | [Tauri v2](https://tauri.app) + Rust |
+| UI framework | [React 19](https://react.dev) + TypeScript |
+| Build tool | [Vite 8](https://vitejs.dev) |
+| 3D map | [CesiumJS 1.139](https://cesium.com) |
+| Charts | [Recharts](https://recharts.org) |
+| State | [Zustand](https://zustand-demo.pmnd.rs) |
+| Styling | [Tailwind CSS v4](https://tailwindcss.com) |
+| Icons | [Lucide React](https://lucide.dev) |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- [Node.js](https://nodejs.org) 18+
+- [Rust](https://rustup.rs) (for the Tauri desktop shell)
+
+```bash
+# Install Rust via rustup (Windows)
+winget install Rustlang.Rustup
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Install & Run
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Clone the repo
+git clone https://github.com/RPBatchelor/igc-studio.git
+cd igc-studio
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Install dependencies
+npm install
+
+# Run in the browser (no Rust required)
+npm run dev
+
+# Run as a desktop app (requires Rust)
+npx tauri dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser, or wait for the Tauri window to appear.
+
+### Build
+
+```bash
+# Web build
+npm run build
+
+# Desktop installer
+npx tauri build
+```
+
+## Usage
+
+1. Click the **folder icon** in the activity bar to open the Explorer panel
+2. Click **Open Folder** and select your flight log directory
+3. Browse folders and click any `.igc` or `.kml` file to load it
+4. Use the **timeline** at the bottom to play back the flight or scrub to any point
+5. Click the **layers icon** in the activity bar to switch map base layers
+6. View flight stats and altitude/speed/distance charts in the right panel
+
+## Project Structure
+
+```
+igc-studio/
+├── src/                        # React frontend
+│   ├── components/
+│   │   ├── explorer/           # File browser & map layer controls
+│   │   ├── layout/             # App shell & panel layout
+│   │   ├── map/                # CesiumJS flight map
+│   │   ├── stats/              # Stats cards & charts
+│   │   └── timeline/           # Playback controls
+│   ├── hooks/                  # useFileSystem, useFlightAnimation
+│   ├── parsers/                # IGC & KML parsers, shared types
+│   ├── stores/                 # Zustand store
+│   └── lib/                    # Flight stats calculator
+└── src-tauri/                  # Tauri Rust backend
+    └── src/commands/           # File system commands
+```
+
+## Roadmap
+
+- [ ] 3D terrain elevation (requires Cesium Ion token)
+- [ ] Colour-coded track by altitude / speed / vario
+- [ ] XC scoring and triangle detection
+- [ ] Flight comparison (overlay multiple tracks)
+- [ ] Thermal map overlay
+- [ ] Export to GPX / KMZ
+- [ ] Weather data integration
+
+## License
+
+MIT
