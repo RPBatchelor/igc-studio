@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/workspace/apps/**)",
+      "Bash(npm create:*)",
+      "Bash(cp -r \"d:/workspace/apps/flight-viewer-tmp/\"* \"d:/workspace/apps/flight-viewer/\")",
+      "Bash(cp \"d:/workspace/apps/flight-viewer-tmp/.gitignore\" \"d:/workspace/apps/flight-viewer/\")",
+      "Bash(rm -rf \"d:/workspace/apps/flight-viewer-tmp\")",
+      "Bash(npm install:*)",
+      "Bash(npx tauri:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(node -e \"const m = require\\(''react-resizable-panels''\\); console.log\\(Object.keys\\(m\\)\\)\")",
+      "Bash(cargo check:*)",
+      "Read(//d/workspace/apps/flight-viewer/src-tauri/$HOME/.cargo/bin/**)",
+      "Bash(cmd.exe /c 'where cargo')",
+      "Bash(echo PATH=$PATH)",
+      "Bash(grep -o [^:]*cargo[^:]*)",
+      "Bash(cmd.exe /c \"cargo --version\")",
+      "Bash(node -e \"const m = require\\(''d:/workspace/apps/flight-viewer/node_modules/react-resizable-panels/dist/react-resizable-panels.js''\\); console.log\\(Object.keys\\(m\\).join\\(''\\\\n''\\)\\)\")",
+      "Bash(node -e \":*)"
+    ]
+  }
+}
