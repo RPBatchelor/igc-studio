@@ -14,14 +14,14 @@ A desktop application for visualising paragliding flight logs, built by a pilot 
     <td align="center"><b>Location grouping</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/folder-structure.png" alt="VS Code-style folder browser" /></td>
-    <td><img src="docs/screenshots/location-grouping.png" alt="Flights grouped by launch site" /></td>
+    <td><img src="docs/folder-structure.png" alt="VS Code-style folder browser" /></td>
+    <td><img src="docs/location-grouping.png" alt="Flights grouped by launch site" /></td>
   </tr>
 </table>
 
 ### 3D Terrain Flight View
 
-![3D terrain flight track](docs/screenshots/3d-terrain.png)
+![3D terrain flight track](docs/3d-terrain.png)
 
 ## Features
 
