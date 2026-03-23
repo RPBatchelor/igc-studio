@@ -8,6 +8,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useFlightStore } from "../../stores/flightStore";
+import { convertSpeed, convertAlt, speedUnitLabel, altUnitLabel } from "../../lib/units";
 
 function formatElapsed(timestamp: number, startTime: number): string {
   const elapsed = (timestamp - startTime) / 1000;
@@ -17,7 +18,7 @@ function formatElapsed(timestamp: number, startTime: number): string {
 }
 
 export function FlightCharts() {
-  const { flightData, playbackTime, setPlaybackTime, setIsPlaying } =
+  const { flightData, playbackTime, setPlaybackTime, setIsPlaying, speedUnit, altUnit } =
     useFlightStore();
 
   if (!flightData || flightData.points.length === 0) return null;
@@ -29,9 +30,8 @@ export function FlightCharts() {
     .filter((_, i) => i % step === 0 || i === flightData.points.length - 1)
     .map((p) => ({
       time: p.timestamp,
-      altitude: Math.round(p.altGPS),
-      speed: Math.round(p.speed ?? 0),
-      distance: parseFloat((p.distance ?? 0).toFixed(2)),
+      altitude: Math.round(convertAlt(p.altGPS, altUnit)),
+      speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
     }));
 
   const handleClick = (e: { activePayload?: { payload: { time: number } }[] }) => {
@@ -43,10 +43,12 @@ export function FlightCharts() {
 
   const tickStyle = { fontSize: 10, fill: "var(--text-secondary)" };
 
+  const aUnit = altUnitLabel(altUnit);
+  const sUnit = speedUnitLabel(speedUnit);
+
   const charts = [
-    { key: "altitude", label: "Altitude (m)", color: "#4fc3f7", unit: "m" },
-    { key: "speed",    label: "Speed (km/h)",  color: "#81c784", unit: "km/h" },
-    { key: "distance", label: "Distance (km)", color: "#ffb74d", unit: "km" },
+    { key: "altitude", label: `Altitude (${aUnit})`, color: "#4fc3f7", unit: aUnit },
+    { key: "speed",    label: `Speed (${sUnit})`,    color: "#81c784", unit: sUnit },
   ] as const;
 
   const domainMin = data[0].time;

@@ -5,8 +5,10 @@ import {
   TrendingUp,
   Gauge,
   Route,
+  MapPin,
 } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
+import { fmtSpeed, fmtAlt, fmtDist } from "../../lib/units";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -16,8 +18,12 @@ function formatDuration(seconds: number): string {
 }
 
 export function FlightStatsPanel() {
-  const { flightData } = useFlightStore();
+  const { flightData, selectedFile, sites, speedUnit, altUnit } = useFlightStore();
   const stats = flightData?.stats;
+
+  const siteName = selectedFile
+    ? sites.find((s) => s.flights.some((f) => f.path === selectedFile))?.name ?? null
+    : null;
 
   if (!stats) {
     return (
@@ -34,45 +40,30 @@ export function FlightStatsPanel() {
   }
 
   const items = [
-    {
-      icon: Clock,
-      label: "Duration",
-      value: formatDuration(stats.duration),
-    },
-    {
-      icon: ArrowUp,
-      label: "Max Altitude",
-      value: `${Math.round(stats.maxAltitude)} m`,
-    },
-    {
-      icon: ArrowDown,
-      label: "Min Altitude",
-      value: `${Math.round(stats.minAltitude)} m`,
-    },
-    {
-      icon: TrendingUp,
-      label: "Altitude Gain",
-      value: `${Math.round(stats.altitudeGain)} m`,
-    },
-    {
-      icon: Gauge,
-      label: "Max Speed",
-      value: `${Math.round(stats.maxSpeed)} km/h`,
-    },
-    {
-      icon: Gauge,
-      label: "Avg Speed",
-      value: `${Math.round(stats.avgSpeed)} km/h`,
-    },
-    {
-      icon: Route,
-      label: "Distance",
-      value: `${stats.totalDistance.toFixed(1)} km`,
-    },
+    { icon: Clock,     label: "Duration",     value: formatDuration(stats.duration) },
+    { icon: ArrowUp,   label: "Max Altitude", value: fmtAlt(stats.maxAltitude, altUnit) },
+    { icon: ArrowDown, label: "Min Altitude", value: fmtAlt(stats.minAltitude, altUnit) },
+    { icon: TrendingUp,label: "Altitude Gain",value: fmtAlt(stats.altitudeGain, altUnit) },
+    { icon: Gauge,     label: "Max Speed",    value: fmtSpeed(stats.maxSpeed, speedUnit) },
+    { icon: Gauge,     label: "Avg Speed",    value: fmtSpeed(stats.avgSpeed, speedUnit) },
+    { icon: Route,     label: "Distance",     value: fmtDist(stats.totalDistance, altUnit) },
   ];
 
   return (
     <div style={{ padding: "8px 0" }}>
+      {siteName && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          padding: "10px 12px 8px",
+          borderBottom: "1px solid var(--border)",
+          marginBottom: 4,
+        }}>
+          <MapPin size={14} color="#f48fb1" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-bright)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {siteName}
+          </span>
+        </div>
+      )}
       <div
         style={{
           padding: "8px 12px",

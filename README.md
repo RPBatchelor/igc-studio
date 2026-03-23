@@ -1,6 +1,27 @@
 # IGC Studio
 
+<p align="center">
+  <img src="src/assets/igc_studio_logo.png" alt="IGC Studio" width="160" />
+</p>
+
 A desktop application for visualising paragliding flight logs, built by a pilot who thought every existing tool was terrible.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>VS Code-style folder browser</b></td>
+    <td align="center"><b>Location grouping</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/folder-structure.png" alt="VS Code-style folder browser" /></td>
+    <td><img src="docs/screenshots/location-grouping.png" alt="Flights grouped by launch site" /></td>
+  </tr>
+</table>
+
+### 3D Terrain Flight View
+
+![3D terrain flight track](docs/screenshots/3d-terrain.png)
 
 ## Features
 

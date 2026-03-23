@@ -34,9 +34,41 @@ export interface FsEntry {
   extension?: string;
 }
 
-export type MapLayerId =
-  | "osm"
-  | "bingAerial"
-  | "bingRoad"
+export type BaseLayerId =
+  // Satellite
   | "esriSatellite"
-  | "terrain";
+  | "bingAerial"
+  // Topographic
+  | "esriTopo"
+  | "esriNatGeo"
+  | "openTopo"
+  // Street
+  | "osm"
+  | "bingRoads"
+  // Minimal / canvas
+  | "esriLightGrey"
+  | "esriDarkGrey"
+  | "cartoLight"
+  | "cartoDark";
+
+export type OverlayId = "esriRoads";
+
+export type SpeedUnit = "km/h" | "m/s" | "kts";
+export type AltUnit   = "metric" | "imperial"; // metric = m/km, imperial = ft/mi
+
+export interface FlightMeta {
+  path: string;
+  name: string;
+  folderName: string;
+  lat: number;
+  lng: number;
+}
+
+export interface LocationSite {
+  id: string;        // "lat3dp_lng3dp"
+  name: string;
+  lat: number;
+  lng: number;
+  flights: FlightMeta[];
+  geocoded?: boolean;
+}

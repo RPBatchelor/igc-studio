@@ -1,13 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2d2d2d;
-  --border: #3e3e3e;
-  --text-primary: #cccccc;
-  --text-secondary: #969696;
-  --accent: #0078d4;
+/* ── Dark theme — GitHub Dark Dimmed ───────────────────────────────────── */
+:root,
+html[data-theme="dark"] {
+  --bg-primary:     #22272e;  /* canvas default — main/map area          */
+  --bg-secondary:   #2d333b;  /* canvas overlay — side panels            */
+  --bg-tertiary:    #373e47;  /* item/card backgrounds within panels     */
+  --bg-sidebar:     #1c2128;  /* canvas inset — activity bar             */
+  --bg-input:       #1c2128;  /* canvas inset — input fields             */
+  --bg-selected:    rgba(83, 155, 245, 0.2);  /* accent tint             */
+  --bg-hover:       rgba(173, 186, 199, 0.08);
+  --border:         #444c56;
+  --text-primary:   #adbac7;
+  --text-secondary: #768390;
+  --text-muted:     #636e7b;
+  --text-bright:    #cdd9e5;
+  --accent:         #539bf5;
+  --scrollbar-thumb: #444c56;
+}
+
+/* ── Light theme — VS Code Light Modern ──────────────────────────────── */
+html[data-theme="light"] {
+  --bg-primary:     #ffffff;  /* editor / main area                      */
+  --bg-secondary:   #f3f3f3;  /* sidebar panels                          */
+  --bg-tertiary:    #e8e8e8;  /* item / card backgrounds                 */
+  --bg-sidebar:     #ebebeb;  /* activity bar (slightly off sidebar)     */
+  --bg-input:       #ffffff;
+  --bg-selected:    rgba(0, 120, 212, 0.1);  /* accent tint             */
+  --bg-hover:       rgba(0, 0, 0, 0.04);
+  --border:         #e5e5e5;
+  --text-primary:   #3b3b3b;
+  --text-secondary: #656565;
+  --text-muted:     #8c8c8c;
+  --text-bright:    #000000;
+  --accent:         #0078d4;
+  --scrollbar-thumb: #c1c1c1;
 }
 
 * {
@@ -36,7 +63,7 @@ body,
   background: var(--bg-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: #555;
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 

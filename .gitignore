@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets — never commit API tokens
+.secrets
+*.secrets
+.env
+.env.*

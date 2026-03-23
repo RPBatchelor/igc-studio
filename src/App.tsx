@@ -1,5 +1,8 @@
-import { Component, type ReactNode } from "react";
+import { Component, useEffect, type ReactNode } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { PanelLayout } from "./components/layout/PanelLayout";
+import { loadSettings, loadSecrets } from "./lib/settingsDb";
+import { useFlightStore } from "./stores/flightStore";
 
 class ErrorBoundary extends Component<
   { children: ReactNode },
@@ -34,10 +37,35 @@ class ErrorBoundary extends Component<
   }
 }
 
+function AppInner() {
+  const { setCesiumIonToken, setBingMapsKey, setZoomAltitude, setTheme, setSpeedUnit, setAltUnit, theme } = useFlightStore();
+
+  useEffect(() => {
+    loadSettings().then((s) => {
+      if (s.zoomAltitude) setZoomAltitude(s.zoomAltitude);
+      if (s.theme)        setTheme(s.theme);
+      if (s.speedUnit)    setSpeedUnit(s.speedUnit);
+      if (s.altUnit)      setAltUnit(s.altUnit);
+    });
+    loadSecrets().then((s) => {
+      if (s.cesiumIonToken) setCesiumIonToken(s.cesiumIonToken);
+      if (s.bingMapsKey)    setBingMapsKey(s.bingMapsKey);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep data-theme attribute on <html> and native title bar in sync with store
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    getCurrentWindow().setTheme(theme).catch(() => {});
+  }, [theme]);
+
+  return <PanelLayout />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
-      <PanelLayout />
+      <AppInner />
     </ErrorBoundary>
   );
 }
