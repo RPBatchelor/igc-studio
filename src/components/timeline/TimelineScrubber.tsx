@@ -28,8 +28,6 @@ export function TimelineScrubber() {
 
   const startTime = flightData.points[0].timestamp;
   const endTime = flightData.points[flightData.points.length - 1].timestamp;
-  const progress = ((playbackTime - startTime) / (endTime - startTime)) * 100;
-
   const speeds = [1, 2, 5, 10, 20, 50];
 
   return (

@@ -30,7 +30,7 @@ function formatDate(filename: string): string {
 
 export function LocationsPanel() {
   const {
-    sites, sitesLoading, selectedFile, siteDb, geocodingUsed,
+    sites, sitesLoading, selectedFile, geocodingUsed,
     updateSiteDb, setSites, visibleFileTypes, toggleFileType,
   } = useFlightStore();
   const { loadFile } = useFileSystem();

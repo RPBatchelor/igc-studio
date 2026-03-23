@@ -27,8 +27,9 @@ function extractPoints(doc: Record<string, unknown>): TrackPoint[] {
   // Try gx:Track format first (has timestamps)
   const track = findNode(doc, "gx:Track");
   if (track) {
-    const whens: string[] = asArray(track["when"] ?? []);
-    const coords: string[] = asArray(track["gx:coord"] ?? []);
+    const t = track as Record<string, unknown>;
+    const whens: string[] = asArray((t["when"] ?? []) as string[]);
+    const coords: string[] = asArray((t["gx:coord"] ?? []) as string[]);
 
     for (let i = 0; i < Math.min(whens.length, coords.length); i++) {
       const parts = String(coords[i]).trim().split(/\s+/);

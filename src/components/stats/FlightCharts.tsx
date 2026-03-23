@@ -34,10 +34,11 @@ export function FlightCharts() {
       speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
     }));
 
-  const handleClick = (e: { activePayload?: { payload: { time: number } }[] }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleClick = (e: any) => {
     if (e?.activePayload?.[0]) {
       setIsPlaying(false);
-      setPlaybackTime(e.activePayload[0].payload.time);
+      setPlaybackTime(e.activePayload[0].payload.time as number);
     }
   };
 
@@ -83,7 +84,7 @@ export function FlightCharts() {
               <Tooltip
                 contentStyle={{ background: "var(--bg-tertiary)", border: "1px solid var(--border)", borderRadius: 4, fontSize: 11, color: "var(--text-primary)" }}
                 labelFormatter={(v) => formatElapsed(Number(v), startTime)}
-                formatter={(value: number) => [`${value} ${unit}`, label]}
+                formatter={(value) => [`${value ?? ""} ${unit}`, label]}
               />
               <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={1.5} isAnimationActive={false} />
               <ReferenceLine x={playbackTime} stroke="var(--accent)" strokeWidth={2} />

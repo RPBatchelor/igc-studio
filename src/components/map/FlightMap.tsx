@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
-  Viewer, Cartesian3, Color,
+  Viewer, Cartesian3, Color, Ion,
   UrlTemplateImageryProvider, ImageryLayer,
   BingMapsImageryProvider, BingMapsStyle,
   CesiumTerrainProvider, EllipsoidTerrainProvider,
@@ -153,7 +153,8 @@ export function FlightMap() {
     let cancelled = false;
 
     if (terrainEnabled && cesiumIonToken) {
-      CesiumTerrainProvider.fromIonAssetId(1, { accessToken: cesiumIonToken })
+      Ion.defaultAccessToken = cesiumIonToken;
+      CesiumTerrainProvider.fromIonAssetId(1)
         .then((provider) => {
           if (!cancelled && viewerRef.current) viewerRef.current.terrainProvider = provider;
         })
