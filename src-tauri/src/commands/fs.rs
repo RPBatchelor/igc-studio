@@ -1,3 +1,4 @@
+use reqwest;
 use serde::Serialize;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -210,4 +211,26 @@ fn scan_dir(dir: &Path, out: &mut Vec<FlightFileMeta>) {
             }
         }
     }
+}
+
+/// Fetch a URL from the Rust backend, bypassing browser CORS restrictions.
+/// Used for downloading airspace files and checking for updates.
+#[tauri::command]
+pub async fn fetch_url_text(url: String) -> Result<String, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("IGCStudio/1.0")
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("fetch failed: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("HTTP {}", response.status()));
+    }
+
+    response.text().await.map_err(|e| e.to_string())
 }

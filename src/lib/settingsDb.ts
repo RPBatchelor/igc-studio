@@ -14,10 +14,23 @@ export interface AppSettings {
   theme: "dark" | "light";
   speedUnit: SpeedUnit;
   altUnit: AltUnit;
+  airspaceUrl: string;
+  rememberLastFolder: boolean;
+  lastFolderPath: string;
+  showCameraOverlay: boolean;
 }
 
 const DEFAULT_SECRETS: AppSecrets = { cesiumIonToken: "", bingMapsKey: "" };
-const DEFAULT_SETTINGS: AppSettings = { zoomAltitude: 8000, theme: "dark", speedUnit: "km/h", altUnit: "metric" };
+const DEFAULT_SETTINGS: AppSettings = {
+  zoomAltitude: 8000,
+  theme: "dark",
+  speedUnit: "km/h",
+  altUnit: "metric",
+  airspaceUrl: "https://xcaustralia.org/download/class_all.php",
+  rememberLastFolder: true,
+  lastFolderPath: "",
+  showCameraOverlay: false,
+};
 
 let baseDir: string | null = null;
 

@@ -10,6 +10,7 @@ pub fn run() {
             commands::fs::write_file_text,
             commands::fs::get_data_dir,
             commands::fs::scan_flights,
+            commands::fs::fetch_url_text,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
