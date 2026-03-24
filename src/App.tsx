@@ -88,6 +88,7 @@ function AppInner() {
       altUnit:            s.altUnit,
       airspaceUrl:        s.airspaceUrl,
       rememberLastFolder: s.rememberLastFolder,
+      showCameraOverlay:  s.showCameraOverlay,
       lastFolderPath:     rootFolder,
     });
   }, [rootFolder]); // eslint-disable-line react-hooks/exhaustive-deps
