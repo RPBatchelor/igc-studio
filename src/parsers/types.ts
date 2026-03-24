@@ -51,7 +51,26 @@ export type BaseLayerId =
   | "cartoLight"
   | "cartoDark";
 
-export type OverlayId = "esriRoads";
+export type OverlayId = "esriRoads" | "airspace" | "sgZones";
+
+export interface SgZone {
+  id: string;
+  name: string;
+  class: string;       // "Landing", "Emergency Landing", "No Landing", "Powerline", etc.
+  checkType: string;   // "obstacle" | "ignore" | etc.
+  polygon: Array<{ lat: number; lng: number }>;
+}
+
+export interface AirspaceFeature {
+  id: string;
+  name: string;
+  class: string;       // "CTR", "A"–"G", "R", "P", "Q", etc.
+  floorM: number;      // floor altitude metres AMSL (0 for GND/SFC)
+  ceilM: number;       // ceiling altitude metres AMSL
+  floorIsAGL: boolean; // true when original reference was AGL
+  ceilIsAGL: boolean;
+  polygon: Array<{ lat: number; lng: number }>; // ≥3 points; circles pre-converted
+}
 
 export type SpeedUnit = "km/h" | "m/s" | "kts";
 export type AltUnit   = "metric" | "imperial"; // metric = m/km, imperial = ft/mi

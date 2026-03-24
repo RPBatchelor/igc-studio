@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { saveSettings, saveSecrets } from "../../lib/settingsDb";
 import type { SpeedUnit, AltUnit } from "../../parsers/types";
-import { FolderOpen, MapPin, Layers, Settings, Sun, Moon } from "lucide-react";
+import { FolderOpen, MapPin, Layers, Settings, Sun, Moon, Minus, Square, X } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { GlobalSearch } from "../search/GlobalSearch";
 import { useFlightStore } from "../../stores/flightStore";
 import { FileExplorer } from "../explorer/FileExplorer";
 import { MapLayers } from "../explorer/MapLayers";
@@ -40,14 +42,19 @@ function SettingsPanel() {
     theme, setTheme,
     speedUnit, setSpeedUnit,
     altUnit, setAltUnit,
+    airspaceUrl, setAirspaceUrl,
+    rememberLastFolder, setRememberLastFolder,
+    showCameraOverlay, setShowCameraOverlay,
   } = useFlightStore();
 
-  const [ionDraft,  setIonDraft]  = useState(cesiumIonToken);
-  const [bingDraft, setBingDraft] = useState(bingMapsKey);
+  const [ionDraft,       setIonDraft]       = useState(cesiumIonToken);
+  const [bingDraft,      setBingDraft]      = useState(bingMapsKey);
+  const [airspaceUrlDraft, setAirspaceUrlDraft] = useState(airspaceUrl);
 
-  // Sync drafts when secrets load from disk after mount
-  useEffect(() => { setIonDraft(cesiumIonToken); },  [cesiumIonToken]);
-  useEffect(() => { setBingDraft(bingMapsKey); }, [bingMapsKey]);
+  // Sync drafts when values load from disk after mount
+  useEffect(() => { setIonDraft(cesiumIonToken); },         [cesiumIonToken]);
+  useEffect(() => { setBingDraft(bingMapsKey); },           [bingMapsKey]);
+  useEffect(() => { setAirspaceUrlDraft(airspaceUrl); },    [airspaceUrl]);
 
   const persistSecrets = (patch: { cesiumIonToken?: string; bingMapsKey?: string }) => {
     const s = useFlightStore.getState();
@@ -57,13 +64,17 @@ function SettingsPanel() {
     });
   };
 
-  const persistSettings = (patch: Partial<{ theme: "dark" | "light"; zoomAltitude: number; speedUnit: SpeedUnit; altUnit: AltUnit }>) => {
+  const persistSettings = (patch: Partial<{ theme: "dark" | "light"; zoomAltitude: number; speedUnit: SpeedUnit; altUnit: AltUnit; airspaceUrl: string; rememberLastFolder: boolean; showCameraOverlay: boolean }>) => {
     const s = useFlightStore.getState();
     saveSettings({
-      theme:        patch.theme        ?? s.theme,
-      zoomAltitude: patch.zoomAltitude ?? s.zoomAltitude,
-      speedUnit:    patch.speedUnit    ?? s.speedUnit,
-      altUnit:      patch.altUnit      ?? s.altUnit,
+      theme:              patch.theme              ?? s.theme,
+      zoomAltitude:       patch.zoomAltitude       ?? s.zoomAltitude,
+      speedUnit:          patch.speedUnit          ?? s.speedUnit,
+      altUnit:            patch.altUnit            ?? s.altUnit,
+      airspaceUrl:        patch.airspaceUrl        ?? s.airspaceUrl,
+      rememberLastFolder: patch.rememberLastFolder ?? s.rememberLastFolder,
+      showCameraOverlay:  patch.showCameraOverlay  ?? s.showCameraOverlay,
+      lastFolderPath:     s.rootFolder ?? "",
     });
   };
 
@@ -132,6 +143,30 @@ function SettingsPanel() {
         <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
           Camera altitude when a flight is opened
         </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={rememberLastFolder}
+            onChange={(e) => {
+              setRememberLastFolder(e.target.checked);
+              persistSettings({ rememberLastFolder: e.target.checked });
+            }}
+            style={{ accentColor: "#0078d4" }}
+          />
+          <span>Reopen last folder on startup</span>
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={showCameraOverlay}
+            onChange={(e) => {
+              setShowCameraOverlay(e.target.checked);
+              persistSettings({ showCameraOverlay: e.target.checked });
+            }}
+            style={{ accentColor: "#0078d4" }}
+          />
+          <span>Show camera position overlay</span>
+        </label>
       </div>
 
       {/* Units */}
@@ -206,7 +241,7 @@ function SettingsPanel() {
       </div>
 
       {/* Bing Maps */}
-      <div>
+      <div style={{ marginBottom: 20 }}>
         <label style={{ display: "block", marginBottom: 4, color: "var(--text-primary)" }}>
           Bing Maps API Key
         </label>
@@ -224,6 +259,31 @@ function SettingsPanel() {
         />
         <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
           Free at <a href="https://www.bingmapsportal.com" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>bingmapsportal.com</a>
+        </div>
+      </div>
+
+      {/* Airspace Data */}
+      <div style={sectionLabel}>Airspace Data</div>
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: "block", marginBottom: 4, color: "var(--text-primary)" }}>
+          Airspace file URL
+        </label>
+        <input
+          type="text"
+          value={airspaceUrlDraft}
+          onChange={(e) => setAirspaceUrlDraft(e.target.value)}
+          onBlur={() => {
+            const url = airspaceUrlDraft.trim() || "https://xcaustralia.org/download/class_all.php";
+            setAirspaceUrl(url);
+            persistSettings({ airspaceUrl: url });
+          }}
+          style={keyInputStyle}
+        />
+        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+          XCaustralia file updates periodically —{" "}
+          <a href="https://soaringweb.org/Airspace/AU.html" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+            check soaringweb.org for latest
+          </a>
         </div>
       </div>
 
@@ -261,12 +321,12 @@ function useDragResize(initial: number, min: number, max: number, direction: "ri
 }
 
 export function PanelLayout() {
-  const [activeView, setActiveView] = useState<View | null>("explorer");
+  const { activeView, setActiveView } = useFlightStore();
   const left = useDragResize(240, 150, 500, "right");
   const right = useDragResize(300, 200, 550, "left");
 
   const toggleView = (id: View) =>
-    setActiveView((prev) => (prev === id ? null : id));
+    setActiveView(activeView === id ? null : id);
 
   const handleStyle: React.CSSProperties = {
     width: 4,
@@ -279,6 +339,66 @@ export function PanelLayout() {
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+
+      {/* Custom title bar */}
+      <div
+        onMouseDown={(e) => {
+          // Drag the window unless the click was on a button or input
+          if (!(e.target as HTMLElement).closest("button, input, [role='button']")) {
+            void getCurrentWindow().startDragging();
+          }
+        }}
+        style={{
+          height: 38,
+          flexShrink: 0,
+          background: "var(--bg-sidebar)",
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          position: "relative",
+          zIndex: 100,
+          userSelect: "none",
+        }}
+      >
+        {/* App name — left, inside drag region */}
+        <span
+          style={{ fontSize: 12, color: "var(--text-muted)", paddingLeft: 14, minWidth: 100, pointerEvents: "none" }}
+        >
+          IGC Studio
+        </span>
+
+        {/* Search — centred, NOT a drag region so clicks work */}
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+          <GlobalSearch />
+        </div>
+
+        {/* Window controls — right */}
+        <div style={{ marginLeft: "auto", display: "flex" }}>
+          {[
+            { title: "Minimise",         icon: Minus,  action: () => getCurrentWindow().minimize(),       hoverBg: "var(--bg-tertiary)" },
+            { title: "Maximise/Restore", icon: Square, action: () => getCurrentWindow().toggleMaximize(), hoverBg: "var(--bg-tertiary)" },
+            { title: "Close",            icon: X,      action: () => getCurrentWindow().close(),          hoverBg: "#c42b1c" },
+          ].map(({ title, icon: Icon, action, hoverBg }) => (
+            <button
+              key={title}
+              title={title}
+              onClick={action}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = hoverBg; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+              style={{
+                width: 46, height: 38,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "transparent", border: "none",
+                color: "var(--text-muted)", cursor: "pointer",
+                transition: "background 0.1s, color 0.1s",
+              }}
+            >
+              <Icon size={14} />
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
 
         {/* Activity bar */}

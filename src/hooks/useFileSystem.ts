@@ -10,17 +10,17 @@ import { loadSiteDb, saveSiteDb, resolveDisplayName } from "../lib/siteDb";
 export function useFileSystem() {
   const store = useFlightStore();
 
-  async function openFolder() {
-    const selected = await open({ directory: true });
-    if (!selected) return;
-
-    const root = selected as string;
+  async function openFolderByPath(root: string) {
     store.setRootFolder(root);
-
-    // Load tree immediately, then scan sites in the background
     const entries = await invoke<FsEntry[]>("read_directory", { path: root });
     store.setEntries(entries);
     scanSites(root); // fire-and-forget
+  }
+
+  async function openFolder() {
+    const selected = await open({ directory: true });
+    if (!selected) return;
+    await openFolderByPath(selected as string);
   }
 
   async function scanSites(root: string) {
@@ -88,5 +88,5 @@ export function useFileSystem() {
     store.setFlightData(data);
   }
 
-  return { openFolder, loadDirectory, loadFile };
+  return { openFolder, openFolderByPath, loadDirectory, loadFile };
 }

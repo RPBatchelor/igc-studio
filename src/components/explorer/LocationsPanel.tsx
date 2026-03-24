@@ -32,9 +32,11 @@ export function LocationsPanel() {
   const {
     sites, sitesLoading, selectedFile, geocodingUsed,
     updateSiteDb, setSites, visibleFileTypes, toggleFileType,
+    pendingLocationSiteId, setPendingLocationSiteId,
   } = useFlightStore();
   const { loadFile } = useFileSystem();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const siteRowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const toggleSite = (id: string) =>
     setExpanded((prev) => {
@@ -42,6 +44,16 @@ export function LocationsPanel() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+
+  // Expand and scroll to a site when navigated from search
+  useEffect(() => {
+    if (!pendingLocationSiteId) return;
+    setExpanded((prev) => new Set([...prev, pendingLocationSiteId]));
+    setTimeout(() => {
+      siteRowRefs.current.get(pendingLocationSiteId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    setPendingLocationSiteId(null);
+  }, [pendingLocationSiteId, setPendingLocationSiteId]);
 
   const handleRename = async (siteId: string, name: string) => {
     const updatedDb = updateSiteDb(siteId, { userRename: name });
@@ -92,6 +104,10 @@ export function LocationsPanel() {
               onToggle={() => toggleSite(site.id)}
               onFileClick={loadFile}
               onRename={(name) => handleRename(site.id, name)}
+              rowRef={(el) => {
+                if (el) siteRowRefs.current.set(site.id, el);
+                else siteRowRefs.current.delete(site.id);
+              }}
             />
           );
         })}
@@ -137,7 +153,7 @@ export function LocationsPanel() {
 }
 
 function SiteRow({
-  site, expanded, selectedFile, onToggle, onFileClick, onRename,
+  site, expanded, selectedFile, onToggle, onFileClick, onRename, rowRef,
 }: {
   site: LocationSite;
   expanded: boolean;
@@ -145,6 +161,7 @@ function SiteRow({
   onToggle: () => void;
   onFileClick: (path: string, name: string) => void;
   onRename: (name: string) => void;
+  rowRef?: (el: HTMLDivElement | null) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -166,6 +183,7 @@ function SiteRow({
   return (
     <>
       <div
+        ref={rowRef}
         onClick={onToggle}
         style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 8px", cursor: "pointer", userSelect: "none" }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "var(--bg-hover)"; }}

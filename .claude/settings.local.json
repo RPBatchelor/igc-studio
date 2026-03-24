@@ -18,7 +18,15 @@
       "Bash(grep -o [^:]*cargo[^:]*)",
       "Bash(cmd.exe /c \"cargo --version\")",
       "Bash(node -e \"const m = require\\(''d:/workspace/apps/flight-viewer/node_modules/react-resizable-panels/dist/react-resizable-panels.js''\\); console.log\\(Object.keys\\(m\\).join\\(''\\\\n''\\)\\)\")",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(curl --version)",
+      "WebFetch(domain:siteguide.org.au)",
+      "WebFetch(domain:www.paraglidingearth.com)",
+      "WebFetch(domain:www.xccontest.net)",
+      "WebFetch(domain:xcontest.org)",
+      "WebSearch",
+      "Bash(curl -sI \"https://siteguide.org.au/Downloads/OpenAir?type=Default\")",
+      "Bash(curl -s \"https://siteguide.org.au/Downloads/OziExplorer\")"
     ]
   }
 }
