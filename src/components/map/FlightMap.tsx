@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Viewer, Cartesian3, Color, Ion,
+  Viewer, Cartesian2, Cartesian3, Color, Ion, ClassificationType,
   UrlTemplateImageryProvider, ImageryLayer,
   BingMapsImageryProvider, BingMapsStyle,
   CesiumTerrainProvider, EllipsoidTerrainProvider,
@@ -132,7 +132,7 @@ export function FlightMap() {
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
 
-    handler.setInputAction((e: { endPosition: { x: number; y: number } }) => {
+    handler.setInputAction((e: { endPosition: Cartesian2 }) => {
       const picked = viewer.scene.pick(e.endPosition);
       if (picked?.id && sgZoneEntitiesRef.current.includes(picked.id as Entity)) {
         const entity = picked.id as Entity;
@@ -384,9 +384,9 @@ export function FlightMap() {
       const entity = viewer.entities.add({
         name: `${zone.class}: ${zone.name}`,
         polygon: {
-          hierarchy:     new PolygonHierarchy(positions),
-          material:      Color.fromCssColorString(style.fill).withAlpha(0.3),
-          clampToGround: true,
+          hierarchy:          new PolygonHierarchy(positions),
+          material:           Color.fromCssColorString(style.fill).withAlpha(0.3),
+          classificationType: ClassificationType.TERRAIN,
         },
       });
       sgZoneEntitiesRef.current.push(entity);
