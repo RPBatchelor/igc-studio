@@ -38,6 +38,27 @@ export function enrichPoints(points: TrackPoint[]): TrackPoint[] {
   return points;
 }
 
+/**
+ * Compute smoothed vertical speed (m/s) for each point.
+ * Uses an index-based ±halfWindow point window so it works correctly regardless
+ * of the IGC fix rate (1Hz, 0.2Hz, 0.1Hz, etc.).
+ */
+export function computeVario(points: TrackPoint[], halfWindow = 5): number[] {
+  const n = points.length;
+  const vario = new Array<number>(n).fill(0);
+  if (n < 2) return vario;
+
+  for (let i = 0; i < n; i++) {
+    const lo = Math.max(0, i - halfWindow);
+    const hi = Math.min(n - 1, i + halfWindow);
+    if (hi > lo) {
+      const dtSec = (points[hi].timestamp - points[lo].timestamp) / 1000;
+      vario[i] = dtSec > 0 ? (points[hi].altGPS - points[lo].altGPS) / dtSec : 0;
+    }
+  }
+  return vario;
+}
+
 export function computeStats(points: TrackPoint[]): FlightStats {
   if (points.length === 0) {
     return {
@@ -48,6 +69,8 @@ export function computeStats(points: TrackPoint[]): FlightStats {
       maxSpeed: 0,
       avgSpeed: 0,
       totalDistance: 0,
+      maxClimb: 0,
+      maxSink: 0,
     };
   }
 
@@ -72,6 +95,10 @@ export function computeStats(points: TrackPoint[]): FlightStats {
   const duration = (last.timestamp - first.timestamp) / 1000;
   const totalDistance = last.distance;
 
+  const vario = computeVario(points);
+  const maxClimb = Math.max(0, ...vario);
+  const maxSink = Math.min(0, ...vario);
+
   return {
     duration,
     maxAltitude: maxAlt,
@@ -80,5 +107,7 @@ export function computeStats(points: TrackPoint[]): FlightStats {
     maxSpeed: maxSpd,
     avgSpeed: duration > 0 ? (totalDistance / duration) * 3600 : 0,
     totalDistance,
+    maxClimb,
+    maxSink,
   };
 }

@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { Lock, RefreshCw, AlertCircle } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
-import type { BaseLayerId } from "../../parsers/types";
+import type { BaseLayerId, OverlayId } from "../../parsers/types";
 import { loadAirspaces, saveAirspaceCache } from "../../lib/airspaceApi";
 import { parseOpenAir, parseValidityDate } from "../../lib/airspaceParser";
 import { loadSgZones } from "../../lib/sgZonesApi";
+import { saveSettings } from "../../lib/settingsDb";
 
 interface LayerOption {
   id: BaseLayerId;
@@ -82,9 +83,25 @@ export function MapLayers() {
     setAirspacesFetchedAt, setAirspaceValidDate, setAirspaceUpdateAvailable,
     sgZones, sgZonesLoading, sgZonesError, sgZonesFetchedAt,
     setSgZones, setSgZonesLoading, setSgZonesError, setSgZonesFetchedAt,
+    showShadowCurtain, setShowShadowCurtain,
   } = useFlightStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleAndSave = (id: OverlayId) => {
+    toggleOverlay(id);
+    // Compute next state and persist immediately
+    const next = new Set(overlays);
+    next.has(id) ? next.delete(id) : next.add(id);
+    const s = useFlightStore.getState();
+    saveSettings({
+      theme: s.theme, zoomAltitude: s.zoomAltitude,
+      speedUnit: s.speedUnit, altUnit: s.altUnit,
+      airspaceUrl: s.airspaceUrl, rememberLastFolder: s.rememberLastFolder,
+      showCameraOverlay: s.showCameraOverlay, lastFolderPath: s.rootFolder ?? "",
+      activeOverlays: Array.from(next),
+    });
+  };
 
   // Auto-load when airspace overlay is enabled for the first time
   useEffect(() => {
@@ -202,7 +219,7 @@ export function MapLayers() {
         <input
           type="checkbox"
           checked={overlays.has("esriRoads")}
-          onChange={() => toggleOverlay("esriRoads")}
+          onChange={() => toggleAndSave("esriRoads")}
           style={{ accentColor: "#0078d4" }}
         />
         Roads
@@ -257,7 +274,7 @@ export function MapLayers() {
           <input
             type="checkbox"
             checked={overlays.has("airspace")}
-            onChange={() => toggleOverlay("airspace")}
+            onChange={() => toggleAndSave("airspace")}
             style={{ accentColor: "#0078d4" }}
           />
           Show Airspace
@@ -313,7 +330,7 @@ export function MapLayers() {
           <input
             type="checkbox"
             checked={overlays.has("sgZones")}
-            onChange={() => toggleOverlay("sgZones")}
+            onChange={() => toggleAndSave("sgZones")}
             style={{ accentColor: "#0078d4" }}
           />
           Landing &amp; No-Landing Zones
@@ -344,6 +361,20 @@ export function MapLayers() {
           Showing cached data
         </div>
       )}
+
+      <div style={divider} />
+
+      {/* Playback */}
+      <div style={sectionLabel}>Playback</div>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", cursor: "pointer" }}>
+        <input
+          type="checkbox"
+          checked={showShadowCurtain}
+          onChange={() => setShowShadowCurtain(!showShadowCurtain)}
+          style={{ accentColor: "#0078d4" }}
+        />
+        Shadow Curtain
+      </label>
 
     </div>
   );

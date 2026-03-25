@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { saveSettings, saveSecrets } from "../../lib/settingsDb";
 import type { SpeedUnit, AltUnit } from "../../parsers/types";
-import { FolderOpen, MapPin, Layers, Settings, Sun, Moon, Minus, Square, X } from "lucide-react";
+import { FolderOpen, MapPin, BookOpen, Layers, Settings, Sun, Moon, Minus, Square, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { GlobalSearch } from "../search/GlobalSearch";
 import { useFlightStore } from "../../stores/flightStore";
@@ -11,13 +11,17 @@ import { LocationsPanel } from "../explorer/LocationsPanel";
 import { FlightMap } from "../map/FlightMap";
 import { FlightStatsPanel } from "../stats/FlightStats";
 import { FlightCharts } from "../stats/FlightCharts";
+import { FlightNotes } from "../stats/FlightNotes";
 import { TimelineScrubber } from "../timeline/TimelineScrubber";
+import { LogbookView } from "../logbook/LogbookView";
+import { LogbookPanel } from "../logbook/LogbookPanel";
 
-type View = "explorer" | "locations" | "layers" | "settings";
+type View = "explorer" | "locations" | "logbook" | "layers" | "settings";
 
 const VIEWS: { id: View; icon: typeof FolderOpen; title: string }[] = [
   { id: "explorer",  icon: FolderOpen, title: "Explorer" },
   { id: "locations", icon: MapPin,     title: "Locations" },
+  { id: "logbook",   icon: BookOpen,   title: "Logbook" },
   { id: "layers",    icon: Layers,     title: "Map Layers" },
   { id: "settings",  icon: Settings,   title: "Settings" },
 ];
@@ -436,6 +440,7 @@ export function PanelLayout() {
               <div style={{ flex: 1, overflow: "auto" }}>
                 {activeView === "explorer"  && <FileExplorer />}
                 {activeView === "locations" && <LocationsPanel />}
+                {activeView === "logbook"   && <LogbookPanel />}
                 {activeView === "layers"    && <MapLayers />}
                 {activeView === "settings"  && <SettingsPanel />}
               </div>
@@ -449,9 +454,13 @@ export function PanelLayout() {
           </>
         )}
 
-        {/* Map */}
+        {/* Centre panel — map or logbook */}
         <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-          <FlightMap />
+          {activeView === "logbook" ? (
+            <LogbookView />
+          ) : (
+            <FlightMap />
+          )}
         </div>
 
         {/* Right resize handle + panel */}
@@ -464,6 +473,7 @@ export function PanelLayout() {
         <div style={{ width: right.size, flexShrink: 0, overflow: "auto", background: "var(--bg-secondary)", borderLeft: "1px solid var(--border)" }}>
           <FlightStatsPanel />
           <FlightCharts />
+          <FlightNotes />
         </div>
 
       </div>

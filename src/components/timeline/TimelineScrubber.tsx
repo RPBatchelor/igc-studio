@@ -1,4 +1,4 @@
-import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { Play, Pause, Square, SkipForward } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
 import { useFlightAnimation } from "../../hooks/useFlightAnimation";
 
@@ -20,6 +20,7 @@ export function TimelineScrubber() {
     setPlaybackTime,
     setPlaybackSpeed,
     setIsPlaying,
+    stopPlayback,
   } = useFlightStore();
 
   useFlightAnimation();
@@ -44,11 +45,11 @@ export function TimelineScrubber() {
     >
       {/* Controls */}
       <button
-        onClick={() => setPlaybackTime(startTime)}
+        onClick={stopPlayback}
         style={btnStyle}
-        title="Reset"
+        title="Stop — reset to start and show full track"
       >
-        <SkipBack size={14} />
+        <Square size={14} />
       </button>
       <button
         onClick={() => setIsPlaying(!isPlaying)}
@@ -60,7 +61,7 @@ export function TimelineScrubber() {
       <button
         onClick={() => setPlaybackTime(endTime)}
         style={btnStyle}
-        title="End"
+        title="Jump to end"
       >
         <SkipForward size={14} />
       </button>
@@ -84,6 +85,8 @@ export function TimelineScrubber() {
         value={playbackTime}
         onChange={(e) => {
           setIsPlaying(false);
+          // Keep isStopped=false when scrubbing so trail stays progressive
+          useFlightStore.setState({ isStopped: false });
           setPlaybackTime(Number(e.target.value));
         }}
         style={{

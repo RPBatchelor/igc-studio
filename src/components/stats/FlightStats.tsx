@@ -3,6 +3,7 @@ import {
   ArrowUp,
   ArrowDown,
   TrendingUp,
+  TrendingDown,
   Gauge,
   Route,
   MapPin,
@@ -40,13 +41,15 @@ export function FlightStatsPanel() {
   }
 
   const items = [
-    { icon: Clock,     label: "Duration",     value: formatDuration(stats.duration) },
-    { icon: ArrowUp,   label: "Max Altitude", value: fmtAlt(stats.maxAltitude, altUnit) },
-    { icon: ArrowDown, label: "Min Altitude", value: fmtAlt(stats.minAltitude, altUnit) },
-    { icon: TrendingUp,label: "Altitude Gain",value: fmtAlt(stats.altitudeGain, altUnit) },
-    { icon: Gauge,     label: "Max Speed",    value: fmtSpeed(stats.maxSpeed, speedUnit) },
-    { icon: Gauge,     label: "Avg Speed",    value: fmtSpeed(stats.avgSpeed, speedUnit) },
-    { icon: Route,     label: "Distance",     value: fmtDist(stats.totalDistance, altUnit) },
+    { icon: Clock,        label: "Duration",     value: formatDuration(stats.duration) },
+    { icon: Route,        label: "Distance",     value: fmtDist(stats.totalDistance, altUnit) },
+    { icon: ArrowUp,      label: "Max Altitude", value: fmtAlt(stats.maxAltitude, altUnit) },
+    { icon: ArrowDown,    label: "Min Altitude", value: fmtAlt(stats.minAltitude, altUnit) },
+    { icon: TrendingUp,   label: "Altitude Gain",value: fmtAlt(stats.altitudeGain, altUnit) },
+    { icon: TrendingUp,   label: "Max Climb",    value: `+${stats.maxClimb.toFixed(1)} m/s` },
+    { icon: TrendingDown, label: "Max Sink",     value: `${stats.maxSink.toFixed(1)} m/s` },
+    { icon: Gauge,        label: "Max Speed",    value: fmtSpeed(stats.maxSpeed, speedUnit) },
+    { icon: Gauge,        label: "Avg Speed",    value: fmtSpeed(stats.avgSpeed, speedUnit) },
   ];
 
   return (

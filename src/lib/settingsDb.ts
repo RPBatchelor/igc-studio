@@ -18,6 +18,7 @@ export interface AppSettings {
   rememberLastFolder: boolean;
   lastFolderPath: string;
   showCameraOverlay: boolean;
+  activeOverlays: string[]; // serialised Set<OverlayId>
 }
 
 const DEFAULT_SECRETS: AppSecrets = { cesiumIonToken: "", bingMapsKey: "" };
@@ -30,6 +31,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   rememberLastFolder: true,
   lastFolderPath: "",
   showCameraOverlay: false,
+  activeOverlays: [],
 };
 
 let baseDir: string | null = null;

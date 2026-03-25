@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import type { FlightData, FsEntry, LocationSite, BaseLayerId, OverlayId, SpeedUnit, AltUnit, AirspaceFeature, SgZone } from "../parsers/types";
+import type { FlightData, FsEntry, LocationSite, BaseLayerId, OverlayId, SpeedUnit, AltUnit, AirspaceFeature, SgZone, LogbookEntry } from "../parsers/types";
 import type { SiteDb } from "../lib/siteDb";
+import type { FlightNotesDb, FlightNoteEntry } from "../lib/flightNotesDb";
 
 interface FlightStore {
   // File explorer
@@ -16,6 +17,7 @@ interface FlightStore {
   playbackTime: number; // Unix ms — current position in the flight
   playbackSpeed: number; // multiplier
   isPlaying: boolean;
+  isStopped: boolean; // true = show full track; false = progressive trail
 
   // Map layers
   baseLayer: BaseLayerId;
@@ -56,9 +58,23 @@ interface FlightStore {
   altUnit: AltUnit;
   rememberLastFolder: boolean;
   showCameraOverlay: boolean;
+  showShadowCurtain: boolean;
   pendingCameraTarget: { lat: number; lng: number; altitude: number } | null;
-  activeView: "explorer" | "locations" | "layers" | "settings" | null;
+  activeView: "explorer" | "locations" | "logbook" | "layers" | "settings" | null;
   pendingLocationSiteId: string | null;
+
+  // Flight notes
+  flightNotesDb: FlightNotesDb;
+  setFlightNotesDb: (db: FlightNotesDb) => void;
+  updateFlightNote: (path: string, patch: Partial<FlightNoteEntry>) => FlightNotesDb;
+
+  // Logbook
+  logbookEntries: LogbookEntry[] | null;
+  logbookLoading: boolean;
+  logbookProgress: { done: number; total: number } | null;
+  setLogbookEntries: (entries: LogbookEntry[]) => void;
+  setLogbookLoading: (b: boolean) => void;
+  setLogbookProgress: (p: { done: number; total: number } | null) => void;
 
   // Actions
   setRootFolder: (path: string) => void;
@@ -69,6 +85,7 @@ interface FlightStore {
   setPlaybackTime: (time: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
+  stopPlayback: () => void;
   setBaseLayer: (layer: BaseLayerId) => void;
   toggleOverlay: (overlay: OverlayId) => void;
   setTerrainEnabled: (enabled: boolean) => void;
@@ -91,8 +108,9 @@ interface FlightStore {
   setAltUnit: (unit: AltUnit) => void;
   setRememberLastFolder: (b: boolean) => void;
   setShowCameraOverlay: (b: boolean) => void;
+  setShowShadowCurtain: (b: boolean) => void;
   setPendingCameraTarget: (t: { lat: number; lng: number; altitude: number } | null) => void;
-  setActiveView: (v: "explorer" | "locations" | "layers" | "settings" | null) => void;
+  setActiveView: (v: "explorer" | "locations" | "logbook" | "layers" | "settings" | null) => void;
   setPendingLocationSiteId: (id: string | null) => void;
   setSites: (sites: LocationSite[]) => void;
   setSitesLoading: (loading: boolean) => void;
@@ -110,6 +128,7 @@ export const useFlightStore = create<FlightStore>((set) => ({
   playbackTime: 0,
   playbackSpeed: 20,
   isPlaying: false,
+  isStopped: true,
   baseLayer: "esriSatellite" as BaseLayerId,
   overlays: new Set<OverlayId>(),
   terrainEnabled: true,
@@ -137,11 +156,30 @@ export const useFlightStore = create<FlightStore>((set) => ({
   altUnit: "metric" as AltUnit,
   rememberLastFolder: true,
   showCameraOverlay: false,
+  showShadowCurtain: true,
   pendingCameraTarget: null,
-  activeView: "explorer" as "explorer" | "locations" | "layers" | "settings" | null,
+  activeView: "explorer" as "explorer" | "locations" | "logbook" | "layers" | "settings" | null,
   pendingLocationSiteId: null,
 
-  setRootFolder: (path) => set({ rootFolder: path, entries: [], expandedDirs: new Set(), selectedFile: null, flightData: null }),
+  flightNotesDb: {},
+  setFlightNotesDb: (db) => set({ flightNotesDb: db }),
+  updateFlightNote: (path, patch) => {
+    let next!: FlightNotesDb;
+    set((state) => {
+      next = { ...state.flightNotesDb, [path]: { ...state.flightNotesDb[path], ...patch } };
+      return { flightNotesDb: next };
+    });
+    return next;
+  },
+
+  logbookEntries: null,
+  logbookLoading: false,
+  logbookProgress: null,
+  setLogbookEntries: (entries) => set({ logbookEntries: entries }),
+  setLogbookLoading: (b) => set({ logbookLoading: b }),
+  setLogbookProgress: (p) => set({ logbookProgress: p }),
+
+  setRootFolder: (path) => set({ rootFolder: path, entries: [], expandedDirs: new Set(), selectedFile: null, flightData: null, logbookEntries: null }),
   setEntries: (entries) => set({ entries }),
   toggleDir: (path) =>
     set((state) => {
@@ -156,10 +194,19 @@ export const useFlightStore = create<FlightStore>((set) => ({
       flightData: data,
       playbackTime: data?.points[0]?.timestamp ?? 0,
       isPlaying: false,
+      isStopped: true,
     }),
   setPlaybackTime: (time) => set({ playbackTime: time }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
-  setIsPlaying: (playing) => set({ isPlaying: playing }),
+  setIsPlaying: (playing) => set((s) => ({
+    isPlaying: playing,
+    isStopped: playing ? false : s.isStopped, // starting play clears stopped state
+  })),
+  stopPlayback: () => set((s) => ({
+    isPlaying: false,
+    isStopped: true,
+    playbackTime: s.flightData?.points[0]?.timestamp ?? 0,
+  })),
   setBaseLayer: (layer) => set({ baseLayer: layer }),
   toggleOverlay: (overlay) =>
     set((state) => {
@@ -189,6 +236,7 @@ export const useFlightStore = create<FlightStore>((set) => ({
   setAirspaceUrl: (url) => set({ airspaceUrl: url }),
   setRememberLastFolder: (b) => set({ rememberLastFolder: b }),
   setShowCameraOverlay: (b) => set({ showCameraOverlay: b }),
+  setShowShadowCurtain: (b) => set({ showShadowCurtain: b }),
   setPendingCameraTarget: (t) => set({ pendingCameraTarget: t }),
   setActiveView: (v) => set({ activeView: v }),
   setPendingLocationSiteId: (id) => set({ pendingLocationSiteId: id }),

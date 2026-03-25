@@ -16,6 +16,8 @@ export interface FlightStats {
   maxSpeed: number;
   avgSpeed: number;
   totalDistance: number; // km
+  maxClimb: number; // m/s
+  maxSink: number;  // m/s (negative value)
 }
 
 export interface FlightData {
@@ -74,6 +76,18 @@ export interface AirspaceFeature {
 
 export type SpeedUnit = "km/h" | "m/s" | "kts";
 export type AltUnit   = "metric" | "imperial"; // metric = m/km, imperial = ft/mi
+
+export interface LogbookEntry {
+  path: string;
+  siteId: string;
+  siteName: string;
+  date: string;        // ISO "YYYY-MM-DD" or ""
+  duration: number;    // seconds
+  distance: number;    // km
+  maxAltitude: number; // m
+  maxClimb: number;    // m/s
+  maxSink: number;     // m/s
+}
 
 export interface FlightMeta {
   path: string;

@@ -4,6 +4,7 @@ import { PanelLayout } from "./components/layout/PanelLayout";
 import { loadSettings, loadSecrets, saveSettings } from "./lib/settingsDb";
 import { loadAirspaceCache, checkAirspaceVersion } from "./lib/airspaceApi";
 import { loadSgZonesCache } from "./lib/sgZonesApi";
+import { loadFlightNotesDb } from "./lib/flightNotesDb";
 import { useFileSystem } from "./hooks/useFileSystem";
 import { useFlightStore } from "./stores/flightStore";
 
@@ -48,6 +49,7 @@ function AppInner() {
     setAirspaces, setAirspacesFetchedAt,
     setSgZones, setSgZonesFetchedAt,
     setRememberLastFolder, setShowCameraOverlay,
+    toggleOverlay, setFlightNotesDb,
     theme, rootFolder,
   } = useFlightStore();
 
@@ -62,6 +64,7 @@ function AppInner() {
       if (s.airspaceUrl)         setAirspaceUrl(s.airspaceUrl);
       setRememberLastFolder(s.rememberLastFolder ?? true);
       setShowCameraOverlay(s.showCameraOverlay ?? false);
+      for (const id of (s.activeOverlays ?? [])) toggleOverlay(id as import("./parsers/types").OverlayId);
 
       // Restore last folder if enabled
       if (s.rememberLastFolder && s.lastFolderPath) {
@@ -113,6 +116,8 @@ function AppInner() {
         setSgZonesFetchedAt(cached.fetchedAt);
       }
     });
+    // Load flight notes DB
+    loadFlightNotesDb().then(setFlightNotesDb);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep data-theme attribute on <html> and native title bar in sync with store

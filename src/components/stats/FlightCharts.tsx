@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { useFlightStore } from "../../stores/flightStore";
 import { convertSpeed, convertAlt, speedUnitLabel, altUnitLabel } from "../../lib/units";
+import { computeVario } from "../../lib/stats";
 
 function formatElapsed(timestamp: number, startTime: number): string {
   const elapsed = (timestamp - startTime) / 1000;
@@ -26,12 +27,16 @@ export function FlightCharts() {
   const startTime = flightData.points[0].timestamp;
 
   const step = Math.max(1, Math.floor(flightData.points.length / 500));
+  const vario = computeVario(flightData.points);
+  const lastIdx = flightData.points.length - 1;
   const data = flightData.points
-    .filter((_, i) => i % step === 0 || i === flightData.points.length - 1)
-    .map((p) => ({
+    .map((p, i) => ({ p, i }))
+    .filter(({ i }) => i % step === 0 || i === lastIdx)
+    .map(({ p, i }) => ({
       time: p.timestamp,
       altitude: Math.round(convertAlt(p.altGPS, altUnit)),
       speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
+      vario: parseFloat(vario[i].toFixed(1)),
     }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +55,7 @@ export function FlightCharts() {
   const charts = [
     { key: "altitude", label: `Altitude (${aUnit})`, color: "#4fc3f7", unit: aUnit },
     { key: "speed",    label: `Speed (${sUnit})`,    color: "#81c784", unit: sUnit },
+    { key: "vario",    label: "Vario (m/s)",          color: "#ce93d8", unit: "m/s" },
   ] as const;
 
   const domainMin = data[0].time;
@@ -87,6 +93,7 @@ export function FlightCharts() {
                 formatter={(value) => [`${value ?? ""} ${unit}`, label]}
               />
               <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+              {key === "vario" && <ReferenceLine y={0} stroke="rgba(255,255,255,0.3)" strokeWidth={1} strokeDasharray="4 3" />}
               <ReferenceLine x={playbackTime} stroke="var(--accent)" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
