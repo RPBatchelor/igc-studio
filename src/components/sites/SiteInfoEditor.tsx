@@ -66,7 +66,7 @@ interface MergeRow {
   selected: boolean;
 }
 
-function toDisplayStr(key: keyof SiteInfo, val: unknown): string {
+function toDisplayStr(_key: keyof SiteInfo, val: unknown): string {
   if (val === undefined || val === null || val === "") return "";
   return String(val);
 }

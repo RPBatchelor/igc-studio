@@ -99,6 +99,8 @@ export function MapLayers() {
       speedUnit: s.speedUnit, altUnit: s.altUnit,
       airspaceUrl: s.airspaceUrl, rememberLastFolder: s.rememberLastFolder,
       showCameraOverlay: s.showCameraOverlay, lastFolderPath: s.rootFolder ?? "",
+      showFullFilename: s.showFullFilename, showBakFiles: s.showBakFiles,
+      groupSitesByType: s.groupSitesByType,
       activeOverlays: Array.from(next),
     });
   };

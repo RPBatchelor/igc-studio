@@ -198,6 +198,7 @@ export function SettingsView() {
       showBakFiles:       patch.showBakFiles       ?? s.showBakFiles,
       groupSitesByType:   patch.groupSitesByType   ?? s.groupSitesByType,
       lastFolderPath:     s.rootFolder ?? "",
+      activeOverlays:     Array.from(s.overlays),
     });
   };
 

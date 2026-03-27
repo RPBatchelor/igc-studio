@@ -84,11 +84,11 @@ export function FileExplorer() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {(Object.entries(FILE_TYPES) as [FileTypeKey, typeof FILE_TYPES[FileTypeKey]][]).filter(([type]) => type !== "bak").map(([type, { icon: Icon, color, label }]) => {
-            const active = visibleFileTypes.has(type);
+            const active = visibleFileTypes.has(type as "igc" | "kml");
             return (
               <button
                 key={type}
-                onClick={() => toggleFileType(type)}
+                onClick={() => toggleFileType(type as "igc" | "kml")}
                 title={`Toggle ${label} files`}
                 style={{
                   display: "flex",

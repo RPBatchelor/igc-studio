@@ -267,14 +267,15 @@ export function FlightTrim() {
     opInFlightRef.current = true;
     setStatus("saving"); setErrorMsg("");
     try {
-      const rawContent = await invoke<string>("read_file_text", { path: selectedFile });
+      const file = selectedFile!;
+      const rawContent = await invoke<string>("read_file_text", { path: file });
       if (!hasBackup) {
-        await invoke("write_file_text", { path: bakPath(selectedFile), content: rawContent });
+        await invoke("write_file_text", { path: bakPath(file), content: rawContent });
         setHasBackup(true);
       }
-      const trimmed = trimFileContent(rawContent, selectedFile, startMs, endMs, flightData.date, domainMin, domainMax, pts.length);
-      await invoke("write_file_text", { path: selectedFile, content: trimmed });
-      await loadFlightData(selectedFile, filename, setFlightData);
+      const trimmed = trimFileContent(rawContent, file, startMs, endMs, flightData!.date, domainMin, domainMax, pts.length);
+      await invoke("write_file_text", { path: file, content: trimmed });
+      await loadFlightData(file, filename, setFlightData);
       const fresh = useFlightStore.getState().flightData;
       patchLogbook(fresh);
       resetHandlesToFlight(fresh);
@@ -294,9 +295,10 @@ export function FlightTrim() {
     opInFlightRef.current = true;
     setStatus("restoring"); setErrorMsg("");
     try {
-      const original = await invoke<string>("read_file_text", { path: bakPath(selectedFile) });
-      await invoke("write_file_text", { path: selectedFile, content: original });
-      await loadFlightData(selectedFile, filename, setFlightData);
+      const file = selectedFile!;
+      const original = await invoke<string>("read_file_text", { path: bakPath(file) });
+      await invoke("write_file_text", { path: file, content: original });
+      await loadFlightData(file, filename, setFlightData);
       const fresh = useFlightStore.getState().flightData;
       patchLogbook(fresh);
       resetHandlesToFlight(fresh);
