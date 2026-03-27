@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { parseOpenAir, parseValidityDate } from "./airspaceParser";
 import type { AirspaceFeature } from "../parsers/types";
+import { loadCached, saveCached } from "./cacheManager";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -16,16 +17,6 @@ const VERSION_CHECK_URL = "https://soaringweb.org/Airspace/AU.html";
 // Cache file path (mirrors settingsDb.ts pattern)
 // ---------------------------------------------------------------------------
 
-let baseDir: string | null = null;
-
-async function getBaseDir(): Promise<string> {
-  if (!baseDir) {
-    const dir = await invoke<string>("get_data_dir");
-    baseDir = dir.replace(/\\/g, "/") + "/igc-studio";
-  }
-  return baseDir;
-}
-
 // ---------------------------------------------------------------------------
 // Cache types + read/write
 // ---------------------------------------------------------------------------
@@ -37,22 +28,11 @@ export interface AirspaceCache {
 }
 
 export async function loadAirspaceCache(): Promise<AirspaceCache | null> {
-  try {
-    const path = (await getBaseDir()) + "/" + CACHE_FILE;
-    const text = await invoke<string>("read_file_text", { path });
-    return JSON.parse(text) as AirspaceCache;
-  } catch {
-    return null;
-  }
+  return loadCached<AirspaceCache>(CACHE_FILE);
 }
 
 export async function saveAirspaceCache(data: AirspaceCache): Promise<void> {
-  try {
-    const path = (await getBaseDir()) + "/" + CACHE_FILE;
-    await invoke("write_file_text", { path, content: JSON.stringify(data) });
-  } catch (e) {
-    console.warn("Failed to save airspace cache:", e);
-  }
+  return saveCached(CACHE_FILE, data);
 }
 
 // ---------------------------------------------------------------------------

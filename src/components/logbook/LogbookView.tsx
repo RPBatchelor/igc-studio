@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -9,7 +9,9 @@ import {
   Cell,
 } from "recharts";
 import { useFlightStore } from "../../stores/flightStore";
+import { useFileSystem } from "../../hooks/useFileSystem";
 import { scanLogbook } from "../../lib/logbookScanner";
+import { LogbookTimeline } from "./LogbookTimeline";
 import type { LogbookEntry } from "../../parsers/types";
 import { BookOpen, Clock, Route, Mountain, TrendingUp, TrendingDown, Gauge, CalendarDays } from "lucide-react";
 
@@ -138,27 +140,37 @@ export function LogbookView() {
     logbookEntries,
     logbookLoading,
     logbookProgress,
+    logbookFilterMode: filterMode,
+    logbookFromDate: fromDate,
     setLogbookEntries,
     setLogbookLoading,
     setLogbookProgress,
+    setLogbookFilterMode: setFilterMode,
+    setLogbookFromDate: setFromDate,
     visibleFileTypes,
+    setActiveView,
   } = useFlightStore();
+  const { loadFile } = useFileSystem();
 
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [fromDate, setFromDate] = useState("");
+  const handleGoToFlight = useCallback((entry: LogbookEntry) => {
+    const name = entry.path.replace(/\\/g, "/").split("/").pop() ?? "";
+    loadFile(entry.path, name);
+    setActiveView("explorer");
+  }, [loadFile, setActiveView]);
 
-  // Trigger scan when we have sites but no entries yet
+  // Fallback: trigger scan if somehow entries are still null when the tab opens
+  // (normally the scan starts in the background as soon as the folder is opened)
   useEffect(() => {
     if (logbookEntries !== null || logbookLoading || sites.length === 0) return;
     setLogbookLoading(true);
-    setLogbookProgress({ done: 0, total: 1 });
+    setLogbookProgress({ done: 0, total: sites.reduce((n, s) => n + s.flights.length, 0) });
     scanLogbook(sites, (done, total) => setLogbookProgress({ done, total }))
       .then((entries) => {
         setLogbookEntries(entries);
         setLogbookProgress(null);
       })
       .finally(() => setLogbookLoading(false));
-  }, [sites, logbookEntries, logbookLoading]);
+  }, [sites, logbookEntries, logbookLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sectionLabel: React.CSSProperties = {
     fontSize: 10,
@@ -220,7 +232,7 @@ export function LogbookView() {
     const ext = fileExt(e.path);
     if (ext === "igc") return visibleFileTypes.has("igc");
     if (ext === "kml") return visibleFileTypes.has("kml");
-    return true;
+    return false; // exclude .bak and any other unexpected types
   });
   const filtered = applyFilter(typeFiltered, filterMode, fromDate);
 
@@ -413,6 +425,25 @@ export function LogbookView() {
           />
         </div>
       </div>
+
+      {/* Flight timeline */}
+      {filtered.some((e) => e.date) && (
+        <div>
+          <div style={sectionLabel}>Flight Timeline</div>
+          <div style={{
+            background: "var(--bg-tertiary)",
+            border: "1px solid var(--border)",
+            borderRadius: 8,
+            padding: "16px 16px 8px",
+            overflow: "visible",
+          }}>
+            <LogbookTimeline entries={filtered} onGoToFlight={handleGoToFlight} />
+          </div>
+          <div style={{ marginTop: 6, fontSize: 10, color: "var(--text-muted)" }}>
+            Stem height = flight duration · Colour = launch site
+          </div>
+        </div>
+      )}
 
     </div>
   );

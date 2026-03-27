@@ -373,8 +373,18 @@ export function MapLayers() {
           onChange={() => setShowShadowCurtain(!showShadowCurtain)}
           style={{ accentColor: "#0078d4" }}
         />
-        Shadow Curtain
+        <span>Shadow Curtain</span>
+        <span style={{
+          fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px",
+          color: "#f59e0b", border: "1px solid #f59e0b33", borderRadius: 3,
+          padding: "1px 4px", marginLeft: 2,
+        }}>
+          Beta
+        </span>
       </label>
+      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.4 }}>
+        Renders a fading vertical wall below the flight path during playback. May stutter on some flights.
+      </div>
 
     </div>
   );

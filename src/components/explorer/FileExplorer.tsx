@@ -4,17 +4,20 @@ import {
   Folder,
   Navigation,
   Globe,
+  Archive,
   ChevronRight,
   ChevronDown,
   FolderSearch,
 } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
+import { formatFlightFilename } from "../../lib/formatFilename";
 import type { FsEntry } from "../../parsers/types";
 
 const FILE_TYPES = {
   igc: { icon: Navigation, color: "#4fc3f7", label: "IGC" },
   kml: { icon: Globe,      color: "#81c784", label: "KML" },
+  bak: { icon: Archive,    color: "#9e9e9e", label: "BAK" },
 } as const;
 
 type FileTypeKey = keyof typeof FILE_TYPES;
@@ -23,11 +26,12 @@ function getFileType(name: string): FileTypeKey | null {
   const ext = name.split(".").pop()?.toLowerCase();
   if (ext === "igc") return "igc";
   if (ext === "kml") return "kml";
+  if (ext === "bak") return "bak";
   return null;
 }
 
 export function FileExplorer() {
-  const { rootFolder, entries, selectedFile, expandedDirs, visibleFileTypes, toggleFileType } = useFlightStore();
+  const { rootFolder, entries, selectedFile, expandedDirs, visibleFileTypes, toggleFileType, showFullFilename, showBakFiles } = useFlightStore();
   const { openFolder, loadFile, loadDirectory } = useFileSystem();
 
   return (
@@ -64,6 +68,8 @@ export function FileExplorer() {
               selectedFile={selectedFile}
               expandedDirs={expandedDirs}
               visibleFileTypes={visibleFileTypes}
+              showFullFilename={showFullFilename}
+              showBakFiles={showBakFiles}
               onFileClick={loadFile}
               onLoadDir={loadDirectory}
             />
@@ -77,7 +83,7 @@ export function FileExplorer() {
           Show file types
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          {(Object.entries(FILE_TYPES) as [FileTypeKey, typeof FILE_TYPES[FileTypeKey]][]).map(([type, { icon: Icon, color, label }]) => {
+          {(Object.entries(FILE_TYPES) as [FileTypeKey, typeof FILE_TYPES[FileTypeKey]][]).filter(([type]) => type !== "bak").map(([type, { icon: Icon, color, label }]) => {
             const active = visibleFileTypes.has(type);
             return (
               <button
@@ -116,6 +122,8 @@ function TreeNode({
   selectedFile,
   expandedDirs,
   visibleFileTypes,
+  showFullFilename,
+  showBakFiles,
   onFileClick,
   onLoadDir,
 }: {
@@ -124,6 +132,8 @@ function TreeNode({
   selectedFile: string | null;
   expandedDirs: Set<string>;
   visibleFileTypes: Set<FileTypeKey>;
+  showFullFilename: boolean;
+  showBakFiles: boolean;
   onFileClick: (path: string, name: string) => void;
   onLoadDir: (path: string) => Promise<FsEntry[]>;
 }) {
@@ -141,7 +151,12 @@ function TreeNode({
   // Filter out files whose type is toggled off
   if (!entry.isDir) {
     const type = getFileType(entry.name);
-    if (!type || !visibleFileTypes.has(type)) return null;
+    if (!type) return null;
+    if (type === "bak") {
+      if (!showBakFiles) return null;
+    } else if (!visibleFileTypes.has(type)) {
+      return null;
+    }
   }
 
   const fileType = !entry.isDir ? getFileType(entry.name) : null;
@@ -187,7 +202,7 @@ function TreeNode({
           </>
         )}
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", fontSize: 13 }}>
-          {entry.name}
+          {fileType ? formatFlightFilename(entry.name, showFullFilename) : entry.name}
         </span>
       </div>
 
@@ -200,6 +215,8 @@ function TreeNode({
             selectedFile={selectedFile}
             expandedDirs={expandedDirs}
             visibleFileTypes={visibleFileTypes}
+            showFullFilename={showFullFilename}
+            showBakFiles={showBakFiles}
             onFileClick={onFileClick}
             onLoadDir={onLoadDir}
           />

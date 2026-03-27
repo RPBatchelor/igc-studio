@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::time::Duration;
 use tauri::Manager;
 
 #[derive(Serialize)]
@@ -43,10 +44,10 @@ pub fn read_directory(path: String) -> Result<Vec<FsEntry>, String> {
                     .map(|e| e.to_string_lossy().to_lowercase())
             };
 
-            // Only show directories and flight log files
+            // Only show directories and flight log files (including .bak backups)
             if !is_dir {
                 match extension.as_deref() {
-                    Some("igc" | "kml" | "kmz" | "gpx") => {}
+                    Some("igc" | "kml" | "kmz" | "gpx" | "bak") => {}
                     _ => return None,
                 }
             }
@@ -190,9 +191,22 @@ fn scan_dir(dir: &Path, out: &mut Vec<FlightFileMeta>) {
             let ext = path
                 .extension()
                 .map(|e| e.to_string_lossy().to_lowercase());
+            // For .bak files, determine the inner extension (e.g. "flight.igc.bak" → "igc")
+            let inner_ext = if ext.as_deref() == Some("bak") {
+                path.file_stem()
+                    .and_then(|s| Path::new(s).extension())
+                    .map(|e| e.to_string_lossy().to_lowercase())
+            } else {
+                None
+            };
             let fix = match ext.as_deref() {
                 Some("igc") => first_fix_igc(&path),
                 Some("kml") => first_fix_kml(&path),
+                Some("bak") => match inner_ext.as_deref() {
+                    Some("igc") => first_fix_igc(&path),
+                    Some("kml") => first_fix_kml(&path),
+                    _ => None,
+                },
                 _ => None,
             };
             if let Some((lat, lng)) = fix {
@@ -219,6 +233,8 @@ fn scan_dir(dir: &Path, out: &mut Vec<FlightFileMeta>) {
 pub async fn fetch_url_text(url: String) -> Result<String, String> {
     let client = reqwest::Client::builder()
         .user_agent("IGCStudio/1.0")
+        .timeout(Duration::from_secs(30))
+        .connect_timeout(Duration::from_secs(10))
         .build()
         .map_err(|e| e.to_string())?;
 

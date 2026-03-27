@@ -27,6 +27,9 @@ export interface FlightData {
   date: string;
   points: TrackPoint[];
   stats: FlightStats;
+  /** True when the file had no real GPS timestamps (LineString KML). All time-based
+   *  features (speed, vario, trim, playback) operate on invented 1 s intervals. */
+  hasSyntheticTimestamps?: boolean;
 }
 
 export interface FsEntry {
@@ -104,4 +107,20 @@ export interface LocationSite {
   lng: number;
   flights: FlightMeta[];
   geocoded?: boolean;
+}
+
+export interface SiteInfo {
+  officialName?: string;   // name as pulled from siteguide.org.au
+  region?: string;         // e.g. "Victoria > East Inland"
+  country?: string;
+  state?: string;
+  lat?: number;
+  lng?: number;
+  type?: string;           // e.g. "Inland", "Coastal", "Mountain"
+  conditions?: string;
+  height?: string;         // e.g. "340m / 1115ft"
+  rating?: string;         // e.g. "PG2", "PG3–PG5"
+  status?: "open" | "closed" | "unknown";
+  description?: string;
+  siteGuideUrl?: string;   // stored for refresh
 }

@@ -9,6 +9,7 @@ export function parseKML(content: string, filename: string): FlightData {
   });
   const doc = parser.parse(content);
 
+  const hasRealTimestamps = !!findNode(doc, "gx:Track") || !!findNode(doc, "gx:track");
   const points = extractPoints(doc);
   const enriched = enrichPoints(points);
   const stats = computeStats(enriched);
@@ -18,6 +19,7 @@ export function parseKML(content: string, filename: string): FlightData {
     date: extractDate(doc) ?? "",
     points: enriched,
     stats,
+    ...(hasRealTimestamps ? {} : { hasSyntheticTimestamps: true }),
   };
 }
 

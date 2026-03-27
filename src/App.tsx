@@ -48,7 +48,7 @@ function AppInner() {
     setAirspaceUrl, setAirspaceUpdateAvailable, setAirspaceValidDate,
     setAirspaces, setAirspacesFetchedAt,
     setSgZones, setSgZonesFetchedAt,
-    setRememberLastFolder, setShowCameraOverlay,
+    setRememberLastFolder, setShowCameraOverlay, setShowFullFilename, setShowBakFiles, setGroupSitesByType,
     toggleOverlay, setFlightNotesDb,
     theme, rootFolder,
   } = useFlightStore();
@@ -64,6 +64,9 @@ function AppInner() {
       if (s.airspaceUrl)         setAirspaceUrl(s.airspaceUrl);
       setRememberLastFolder(s.rememberLastFolder ?? true);
       setShowCameraOverlay(s.showCameraOverlay ?? false);
+      setShowFullFilename(s.showFullFilename ?? false);
+      setShowBakFiles(s.showBakFiles ?? false);
+      setGroupSitesByType(s.groupSitesByType ?? false);
       for (const id of (s.activeOverlays ?? [])) toggleOverlay(id as import("./parsers/types").OverlayId);
 
       // Restore last folder if enabled
@@ -92,6 +95,10 @@ function AppInner() {
       airspaceUrl:        s.airspaceUrl,
       rememberLastFolder: s.rememberLastFolder,
       showCameraOverlay:  s.showCameraOverlay,
+      showFullFilename:   s.showFullFilename,
+      showBakFiles:       s.showBakFiles,
+      groupSitesByType:   s.groupSitesByType,
+      activeOverlays:     Array.from(s.overlays),
       lastFolderPath:     rootFolder,
     });
   }, [rootFolder]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -5,7 +5,12 @@ export interface FlightNoteEntry {
   notes?: string;
 }
 
-export type FlightNotesDb = Record<string, FlightNoteEntry>; // key = flight file path
+export type FlightNotesDb = Record<string, FlightNoteEntry>; // key = normalised flight file path
+
+/** Normalise path keys so Windows case/slash differences don't create duplicate entries. */
+export function normalizeNotesKey(path: string): string {
+  return path.toLowerCase().replace(/\\/g, "/");
+}
 
 let dbPath: string | null = null;
 
@@ -20,7 +25,11 @@ async function getDbPath(): Promise<string> {
 export async function loadFlightNotesDb(): Promise<FlightNotesDb> {
   try {
     const text = await invoke<string>("read_file_text", { path: await getDbPath() });
-    return JSON.parse(text) as FlightNotesDb;
+    const raw = JSON.parse(text) as FlightNotesDb;
+    // Migrate any un-normalised keys that may exist from older versions
+    return Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [normalizeNotesKey(k), v])
+    );
   } catch {
     return {};
   }

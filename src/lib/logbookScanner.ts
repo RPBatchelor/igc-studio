@@ -8,7 +8,9 @@ export async function scanLogbook(
   onProgress: (done: number, total: number) => void,
 ): Promise<LogbookEntry[]> {
   const allFlights = sites.flatMap((site) =>
-    site.flights.map((f) => ({ ...f, siteId: site.id, siteName: site.name })),
+    site.flights
+      .filter((f) => !f.name.toLowerCase().endsWith(".bak"))
+      .map((f) => ({ ...f, siteId: site.id, siteName: site.name })),
   );
 
   const entries: LogbookEntry[] = [];

@@ -18,6 +18,9 @@ export interface AppSettings {
   rememberLastFolder: boolean;
   lastFolderPath: string;
   showCameraOverlay: boolean;
+  showFullFilename: boolean;
+  showBakFiles: boolean;
+  groupSitesByType: boolean;
   activeOverlays: string[]; // serialised Set<OverlayId>
 }
 
@@ -31,6 +34,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   rememberLastFolder: true,
   lastFolderPath: "",
   showCameraOverlay: false,
+  showFullFilename: false,
+  showBakFiles: false,
+  groupSitesByType: false,
   activeOverlays: [],
 };
 
@@ -55,9 +61,14 @@ async function getSecretsPath(): Promise<string> {
 export async function loadSettings(): Promise<AppSettings> {
   try {
     const text = await invoke<string>("read_file_text", { path: await getSettingsPath() });
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(text) };
+    try {
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(text) };
+    } catch (parseErr) {
+      console.error("Corrupted settings — could not parse JSON:", parseErr);
+      return { ...DEFAULT_SETTINGS };
+    }
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS }; // file doesn't exist yet
   }
 }
 
@@ -75,10 +86,13 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 export async function loadSecrets(): Promise<AppSecrets> {
   try {
     const raw = await invoke<string>("read_file_text", { path: await getSecretsPath() });
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SECRETS, ...parsed };
+    try {
+      return { ...DEFAULT_SECRETS, ...JSON.parse(raw) };
+    } catch {
+      return { ...DEFAULT_SECRETS };
+    }
   } catch {
-    // File doesn't exist yet or old plain-text format — start fresh
+    // File doesn't exist yet — start fresh
     return { ...DEFAULT_SECRETS };
   }
 }

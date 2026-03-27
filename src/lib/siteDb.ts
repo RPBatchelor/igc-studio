@@ -1,8 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { SiteInfo } from "../parsers/types";
 
 export interface SiteDbEntry {
   geocodedName?: string;   // from OSM Nominatim
   userRename?: string;     // user override — always wins
+  siteInfo?: SiteInfo;     // structured site details
 }
 
 export type SiteDb = Record<string, SiteDbEntry>; // key = site ID
@@ -21,7 +23,12 @@ export async function loadSiteDb(): Promise<SiteDb> {
   try {
     const path = await getDbPath();
     const text = await invoke<string>("read_file_text", { path });
-    return JSON.parse(text) as SiteDb;
+    try {
+      return JSON.parse(text) as SiteDb;
+    } catch (parseErr) {
+      console.error("Corrupted site DB — could not parse JSON:", parseErr);
+      return {};
+    }
   } catch {
     return {}; // file doesn't exist yet — start fresh
   }

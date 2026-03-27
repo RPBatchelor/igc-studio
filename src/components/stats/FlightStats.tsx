@@ -115,6 +115,21 @@ export function FlightStatsPanel() {
           {flightData.glider && <> &middot; {flightData.glider}</>}
         </div>
       )}
+
+      {flightData?.hasSyntheticTimestamps && (
+        <div style={{
+          margin: "0 12px 10px",
+          padding: "6px 10px",
+          background: "rgba(255,180,0,0.1)",
+          border: "1px solid rgba(255,180,0,0.35)",
+          borderRadius: 4,
+          fontSize: 11,
+          color: "var(--text-secondary)",
+          lineHeight: 1.4,
+        }}>
+          No GPS timestamps — speed, vario and trim use estimated 1 s intervals.
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { SgZone } from "../parsers/types";
+import { loadCached, saveCached } from "./cacheManager";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -103,33 +104,12 @@ interface SgZonesCache {
   fetchedAt: number;
 }
 
-let baseDir: string | null = null;
-
-async function getBaseDir(): Promise<string> {
-  if (!baseDir) {
-    const dir = await invoke<string>("get_data_dir");
-    baseDir = dir.replace(/\\/g, "/") + "/igc-studio";
-  }
-  return baseDir;
-}
-
 async function loadCache(): Promise<SgZonesCache | null> {
-  try {
-    const path = (await getBaseDir()) + "/" + CACHE_FILE;
-    const text = await invoke<string>("read_file_text", { path });
-    return JSON.parse(text) as SgZonesCache;
-  } catch {
-    return null;
-  }
+  return loadCached<SgZonesCache>(CACHE_FILE);
 }
 
 async function saveCache(data: SgZonesCache): Promise<void> {
-  try {
-    const path = (await getBaseDir()) + "/" + CACHE_FILE;
-    await invoke("write_file_text", { path, content: JSON.stringify(data) });
-  } catch (e) {
-    console.warn("Failed to save siteguide zones cache:", e);
-  }
+  return saveCached(CACHE_FILE, data);
 }
 
 // ---------------------------------------------------------------------------

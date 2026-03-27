@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Navigation, Globe, ChevronRight, ChevronDown, Loader } from "lucide-react";
+import { MapPin, Navigation, Globe, Archive, ChevronRight, ChevronDown, Loader } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
 import { saveSiteDb } from "../../lib/siteDb";
+import { formatFlightFilename } from "../../lib/formatFilename";
 import type { LocationSite } from "../../parsers/types";
 
 const FILE_TYPES = {
@@ -16,23 +17,16 @@ function getFileIcon(name: string) {
   const ext = name.split(".").pop()?.toLowerCase();
   if (ext === "igc") return <Navigation size={13} color="#4fc3f7" />;
   if (ext === "kml") return <Globe size={13} color="#81c784" />;
+  if (ext === "bak") return <Archive size={13} color="#9e9e9e" />;
   return <Navigation size={13} color="#888" />;
-}
-
-function formatDate(filename: string): string {
-  const m = filename.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (m) {
-    const d = new Date(m[1]);
-    return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
-  }
-  return filename;
 }
 
 export function LocationsPanel() {
   const {
-    sites, sitesLoading, selectedFile, geocodingUsed,
+    sites, sitesLoading, selectedFile, geocodingUsed, siteDb,
     updateSiteDb, setSites, visibleFileTypes, toggleFileType,
     pendingLocationSiteId, setPendingLocationSiteId,
+    showFullFilename, showBakFiles, groupSitesByType,
   } = useFlightStore();
   const { loadFile } = useFileSystem();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -83,34 +77,77 @@ export function LocationsPanel() {
     );
   }
 
+  // Build list of sites with their visible flights, sorted alphabetically
+  const siteRows = sites
+    .map((site) => {
+      const visibleFlights = site.flights.filter((f) => {
+        const ext = f.name.split(".").pop()?.toLowerCase();
+        if (ext === "bak") return showBakFiles;
+        if (ext === "igc") return visibleFileTypes.has("igc");
+        if (ext === "kml") return visibleFileTypes.has("kml");
+        return true;
+      });
+      return { site, visibleFlights };
+    })
+    .filter(({ visibleFlights }) => visibleFlights.length > 0)
+    .sort((a, b) => a.site.name.localeCompare(b.site.name, undefined, { sensitivity: "base" }));
+
+  // Group by type if setting is on
+  const TYPE_ORDER = ["Inland", "Coastal", "Mountain", "Other"];
+  type GroupEntry = { label: string; rows: typeof siteRows };
+  const groups: GroupEntry[] = groupSitesByType
+    ? (() => {
+        const buckets: Record<string, typeof siteRows> = {};
+        for (const row of siteRows) {
+          const type = siteDb[row.site.id]?.siteInfo?.type ?? "Unknown";
+          const key = TYPE_ORDER.includes(type) ? type : "Unknown";
+          (buckets[key] ??= []).push(row);
+        }
+        const orderedKeys = [...TYPE_ORDER.filter((k) => buckets[k]), ...(buckets["Unknown"] ? ["Unknown"] : [])];
+        return orderedKeys.map((label) => ({ label, rows: buckets[label] }));
+      })()
+    : [{ label: "", rows: siteRows }];
+
+  const renderSiteRow = ({ site, visibleFlights }: typeof siteRows[number]) => (
+    <SiteRow
+      key={site.id}
+      site={{ ...site, flights: visibleFlights }}
+      expanded={expanded.has(site.id)}
+      selectedFile={selectedFile}
+      showFullFilename={showFullFilename}
+      onToggle={() => toggleSite(site.id)}
+      onFileClick={loadFile}
+      onRename={(name) => handleRename(site.id, name)}
+      rowRef={(el) => {
+        if (el) siteRowRefs.current.set(site.id, el);
+        else siteRowRefs.current.delete(site.id);
+      }}
+    />
+  );
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Site list */}
       <div style={{ flex: 1, overflow: "auto", padding: "4px 0" }}>
-        {sites.map((site) => {
-          const visibleFlights = site.flights.filter((f) => {
-            const ext = f.name.split(".").pop()?.toLowerCase();
-            if (ext === "igc") return visibleFileTypes.has("igc");
-            if (ext === "kml") return visibleFileTypes.has("kml");
-            return true;
-          });
-          if (visibleFlights.length === 0) return null;
-          return (
-            <SiteRow
-              key={site.id}
-              site={{ ...site, flights: visibleFlights }}
-              expanded={expanded.has(site.id)}
-              selectedFile={selectedFile}
-              onToggle={() => toggleSite(site.id)}
-              onFileClick={loadFile}
-              onRename={(name) => handleRename(site.id, name)}
-              rowRef={(el) => {
-                if (el) siteRowRefs.current.set(site.id, el);
-                else siteRowRefs.current.delete(site.id);
-              }}
-            />
-          );
-        })}
+        {groups.map(({ label, rows }, gi) => (
+          <div key={label || "__all"}>
+            {label && (
+              <div style={{
+                padding: "6px 12px 3px",
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                color: "var(--text-muted)",
+                borderTop: gi === 0 ? "none" : "1px solid var(--border)",
+                marginTop: gi === 0 ? 0 : 4,
+              }}>
+                {label}
+              </div>
+            )}
+            {rows.map(renderSiteRow)}
+          </div>
+        ))}
       </div>
 
       {/* File type filter — shared with Explorer */}
@@ -153,11 +190,12 @@ export function LocationsPanel() {
 }
 
 function SiteRow({
-  site, expanded, selectedFile, onToggle, onFileClick, onRename, rowRef,
+  site, expanded, selectedFile, showFullFilename, onToggle, onFileClick, onRename, rowRef,
 }: {
   site: LocationSite;
   expanded: boolean;
   selectedFile: string | null;
+  showFullFilename: boolean;
   onToggle: () => void;
   onFileClick: (path: string, name: string) => void;
   onRename: (name: string) => void;
@@ -224,6 +262,7 @@ function SiteRow({
 
       {expanded && site.flights.map((flight) => {
         const isSelected = flight.path === selectedFile;
+        const isBak = flight.name.split(".").pop()?.toLowerCase() === "bak";
         return (
           <div
             key={flight.path}
@@ -233,14 +272,15 @@ function SiteRow({
               display: "flex", alignItems: "center", gap: 5,
               padding: "3px 8px", paddingLeft: 32, cursor: "pointer",
               background: isSelected ? "var(--bg-selected)" : "transparent",
-              color: isSelected ? "var(--text-bright)" : "var(--text-secondary)",
+              color: isSelected ? "var(--text-bright)" : isBak ? "var(--text-muted)" : "var(--text-secondary)",
+              opacity: isBak && !isSelected ? 0.7 : 1,
             }}
             onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "var(--bg-hover)"; }}
             onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
           >
             {getFileIcon(flight.name)}
             <span style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {formatDate(flight.name)}
+              {formatFlightFilename(flight.name, showFullFilename)}
             </span>
           </div>
         );

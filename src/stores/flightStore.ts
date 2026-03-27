@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { FlightData, FsEntry, LocationSite, BaseLayerId, OverlayId, SpeedUnit, AltUnit, AirspaceFeature, SgZone, LogbookEntry } from "../parsers/types";
 import type { SiteDb } from "../lib/siteDb";
 import type { FlightNotesDb, FlightNoteEntry } from "../lib/flightNotesDb";
+import { normalizeNotesKey } from "../lib/flightNotesDb";
 
 interface FlightStore {
   // File explorer
@@ -58,10 +59,29 @@ interface FlightStore {
   altUnit: AltUnit;
   rememberLastFolder: boolean;
   showCameraOverlay: boolean;
+  showFullFilename: boolean;
+  showBakFiles: boolean;
+  groupSitesByType: boolean;
   showShadowCurtain: boolean;
   pendingCameraTarget: { lat: number; lng: number; altitude: number } | null;
-  activeView: "explorer" | "locations" | "logbook" | "layers" | "settings" | null;
+  activeView: "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null;
   pendingLocationSiteId: string | null;
+  selectedSiteId: string | null;
+
+  // Sites tab filters (ephemeral — not persisted)
+  siteFilterSearch: string;
+  siteFilterStatus: "any" | "open" | "closed";
+  siteFilterType: string;
+  siteFilterCountry: string;
+  siteFilterState: string;
+  siteFilterRating: string;
+  setSiteFilterSearch: (s: string) => void;
+  setSiteFilterStatus: (s: "any" | "open" | "closed") => void;
+  setSiteFilterType: (s: string) => void;
+  setSiteFilterCountry: (s: string) => void;
+  setSiteFilterState: (s: string) => void;
+  setSiteFilterRating: (s: string) => void;
+  clearSiteFilters: () => void;
 
   // Flight notes
   flightNotesDb: FlightNotesDb;
@@ -72,15 +92,19 @@ interface FlightStore {
   logbookEntries: LogbookEntry[] | null;
   logbookLoading: boolean;
   logbookProgress: { done: number; total: number } | null;
+  logbookFilterMode: "all" | "12months" | "custom";
+  logbookFromDate: string;
   setLogbookEntries: (entries: LogbookEntry[]) => void;
   setLogbookLoading: (b: boolean) => void;
   setLogbookProgress: (p: { done: number; total: number } | null) => void;
+  setLogbookFilterMode: (m: "all" | "12months" | "custom") => void;
+  setLogbookFromDate: (d: string) => void;
 
   // Actions
   setRootFolder: (path: string) => void;
   setEntries: (entries: FsEntry[]) => void;
   toggleDir: (path: string) => void;
-  setSelectedFile: (path: string) => void;
+  setSelectedFile: (path: string | null) => void;
   setFlightData: (data: FlightData | null) => void;
   setPlaybackTime: (time: number) => void;
   setPlaybackSpeed: (speed: number) => void;
@@ -108,10 +132,14 @@ interface FlightStore {
   setAltUnit: (unit: AltUnit) => void;
   setRememberLastFolder: (b: boolean) => void;
   setShowCameraOverlay: (b: boolean) => void;
+  setShowFullFilename: (b: boolean) => void;
+  setShowBakFiles: (b: boolean) => void;
+  setGroupSitesByType: (b: boolean) => void;
   setShowShadowCurtain: (b: boolean) => void;
   setPendingCameraTarget: (t: { lat: number; lng: number; altitude: number } | null) => void;
-  setActiveView: (v: "explorer" | "locations" | "logbook" | "layers" | "settings" | null) => void;
+  setActiveView: (v: "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null) => void;
   setPendingLocationSiteId: (id: string | null) => void;
+  setSelectedSiteId: (id: string | null) => void;
   setSites: (sites: LocationSite[]) => void;
   setSitesLoading: (loading: boolean) => void;
   setSiteDb: (db: SiteDb) => void;
@@ -156,17 +184,36 @@ export const useFlightStore = create<FlightStore>((set) => ({
   altUnit: "metric" as AltUnit,
   rememberLastFolder: true,
   showCameraOverlay: false,
-  showShadowCurtain: true,
+  showFullFilename: false,
+  showBakFiles: false,
+  groupSitesByType: false,
+  showShadowCurtain: false,
   pendingCameraTarget: null,
-  activeView: "explorer" as "explorer" | "locations" | "logbook" | "layers" | "settings" | null,
+  activeView: "explorer" as "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null,
   pendingLocationSiteId: null,
+  selectedSiteId: null,
+
+  siteFilterSearch: "",
+  siteFilterStatus: "any" as "any" | "open" | "closed",
+  siteFilterType: "",
+  siteFilterCountry: "",
+  siteFilterState: "",
+  siteFilterRating: "",
+  setSiteFilterSearch: (s) => set({ siteFilterSearch: s }),
+  setSiteFilterStatus: (s) => set({ siteFilterStatus: s }),
+  setSiteFilterType: (s) => set({ siteFilterType: s }),
+  setSiteFilterCountry: (s) => set({ siteFilterCountry: s }),
+  setSiteFilterState: (s) => set({ siteFilterState: s }),
+  setSiteFilterRating: (s) => set({ siteFilterRating: s }),
+  clearSiteFilters: () => set({ siteFilterSearch: "", siteFilterStatus: "any", siteFilterType: "", siteFilterCountry: "", siteFilterState: "", siteFilterRating: "" }),
 
   flightNotesDb: {},
   setFlightNotesDb: (db) => set({ flightNotesDb: db }),
   updateFlightNote: (path, patch) => {
     let next!: FlightNotesDb;
     set((state) => {
-      next = { ...state.flightNotesDb, [path]: { ...state.flightNotesDb[path], ...patch } };
+      const key = normalizeNotesKey(path);
+      next = { ...state.flightNotesDb, [key]: { ...state.flightNotesDb[key], ...patch } };
       return { flightNotesDb: next };
     });
     return next;
@@ -175,9 +222,13 @@ export const useFlightStore = create<FlightStore>((set) => ({
   logbookEntries: null,
   logbookLoading: false,
   logbookProgress: null,
+  logbookFilterMode: "all",
+  logbookFromDate: "",
   setLogbookEntries: (entries) => set({ logbookEntries: entries }),
   setLogbookLoading: (b) => set({ logbookLoading: b }),
   setLogbookProgress: (p) => set({ logbookProgress: p }),
+  setLogbookFilterMode: (m) => set({ logbookFilterMode: m }),
+  setLogbookFromDate: (d) => set({ logbookFromDate: d }),
 
   setRootFolder: (path) => set({ rootFolder: path, entries: [], expandedDirs: new Set(), selectedFile: null, flightData: null, logbookEntries: null }),
   setEntries: (entries) => set({ entries }),
@@ -236,10 +287,14 @@ export const useFlightStore = create<FlightStore>((set) => ({
   setAirspaceUrl: (url) => set({ airspaceUrl: url }),
   setRememberLastFolder: (b) => set({ rememberLastFolder: b }),
   setShowCameraOverlay: (b) => set({ showCameraOverlay: b }),
+  setShowFullFilename: (b) => set({ showFullFilename: b }),
+  setShowBakFiles: (b) => set({ showBakFiles: b }),
+  setGroupSitesByType: (b) => set({ groupSitesByType: b }),
   setShowShadowCurtain: (b) => set({ showShadowCurtain: b }),
   setPendingCameraTarget: (t) => set({ pendingCameraTarget: t }),
   setActiveView: (v) => set({ activeView: v }),
   setPendingLocationSiteId: (id) => set({ pendingLocationSiteId: id }),
+  setSelectedSiteId: (id) => set({ selectedSiteId: id }),
   setZoomAltitude: (alt) => set({ zoomAltitude: alt }),
   setTheme: (theme) => set({ theme }),
   setSpeedUnit: (unit) => set({ speedUnit: unit }),

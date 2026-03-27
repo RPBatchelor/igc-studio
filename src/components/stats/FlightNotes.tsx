@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useFlightStore } from "../../stores/flightStore";
-import { saveFlightNotesDb } from "../../lib/flightNotesDb";
+import { saveFlightNotesDb, normalizeNotesKey } from "../../lib/flightNotesDb";
 
 export function FlightNotes() {
   const { selectedFile, flightNotesDb, updateFlightNote } = useFlightStore();
 
-  const entry = selectedFile ? (flightNotesDb[selectedFile] ?? {}) : null;
+  const entry = selectedFile ? (flightNotesDb[normalizeNotesKey(selectedFile)] ?? {}) : null;
 
   const [glider, setGlider] = useState(entry?.glider ?? "");
   const [notes,  setNotes]  = useState(entry?.notes  ?? "");
