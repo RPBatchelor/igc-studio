@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>readme</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="README_files/libs/clipboard/clipboard.min.js"></script>
+<script src="README_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="README_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="README_files/libs/quarto-html/popper.min.js"></script>
+<script src="README_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="README_files/libs/quarto-html/anchor.min.js"></script>
+<link href="README_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-b6a8276bf55561bdbc268162d41bd1f7.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="README_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="README_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="README_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="igc-studio" class="level1">
+<h1>IGC Studio</h1>
+<p align="center">
+<img src="src/assets/igc_studio_logo.png" alt="IGC Studio" width="160">
+</p>
+<p align="center">
+A desktop paragliding flight log viewer built by a pilot, for pilots.
+</p>
+<p align="center">
+<a href="https://github.com/RPBatchelor/igc-studio/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/RPBatchelor/igc-studio?style=flat-square"></a> <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-blue?style=flat-square"> <img alt="License" src="https://img.shields.io/badge/license-MIT-green?style=flat-square">
+</p>
+<hr>
+<p>IGC Studio is a free, open-source desktop app for paraglider and hang glider pilots to browse, replay, and analyse flight logs. It runs entirely offline — no accounts, no cloud uploads, no subscriptions.</p>
+<p>Load an <code>.igc</code> or <code>.kml</code> file and immediately see your flight on a 3D terrain map with altitude-gradient colouring, full statistics, interactive charts, and an animated timeline scrubber. Open a folder of years of flights and IGC Studio clusters them into launch sites automatically, so you can explore your history by location rather than digging through folders.</p>
+<hr>
+<section id="screenshots" class="level2">
+<h2 class="anchored" data-anchor-id="screenshots">Screenshots</h2>
+<section id="file-browser-location-grouping" class="level3">
+<h3 class="anchored" data-anchor-id="file-browser-location-grouping">File Browser &amp; Location Grouping</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/folder_location_view_ui.png" class="img-fluid figure-img"></p>
+<figcaption>Folder and location views</figcaption>
+</figure>
+</div>
+<p>Browse your flights as a VS Code-style folder tree (left) or grouped automatically by launch site (right). Site names are resolved via OpenStreetMap reverse geocoding and can be renamed with a double-click.</p>
+<hr>
+</section>
+<section id="d-map-altitude-gradient-track-site-guide-zones" class="level3">
+<h3 class="anchored" data-anchor-id="d-map-altitude-gradient-track-site-guide-zones">3D Map — Altitude-Gradient Track &amp; Site Guide Zones</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/app-ui.png" class="img-fluid figure-img"></p>
+<figcaption>App UI with 3D map, flight track and landing zones</figcaption>
+</figure>
+</div>
+<p>The full app layout: activity bar, resizable side panels, CesiumJS 3D globe, and the right-hand stats/charts panel. The flight track is colour-coded by altitude. Landing zones and no-landing zones from siteguide.org.au are rendered as ground-clamped overlays, with a legend and hover tooltips.</p>
+<hr>
+</section>
+<section id="logbook" class="level3">
+<h3 class="anchored" data-anchor-id="logbook">Logbook</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/logbook_ui.png" class="img-fluid figure-img"></p>
+<figcaption>Logbook view</figcaption>
+</figure>
+</div>
+<p>The Logbook tab aggregates every flight in your library into a timeline chart. Lollipop markers are sized by flight duration and coloured by launch site. Click a marker to lock it and see stats in the right panel; click <strong>View on map</strong> to jump straight to that flight.</p>
+<hr>
+</section>
+<section id="flight-statistics" class="level3">
+<h3 class="anchored" data-anchor-id="flight-statistics">Flight Statistics</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/flight_stats.png" class="img-fluid figure-img"></p>
+<figcaption>Flight stats panel</figcaption>
+</figure>
+</div>
+<p>At-a-glance stats for the loaded flight: duration, distance, max altitude, max climb and sink rates. Charts show altitude, speed, and vario profiles against time with a live playback cursor.</p>
+<hr>
+</section>
+<section id="altitude-correction-flight-trim" class="level3">
+<h3 class="anchored" data-anchor-id="altitude-correction-flight-trim">Altitude Correction &amp; Flight Trim</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="docs/Trim%20&amp;%20alt%20adjustment.png" class="img-fluid figure-img"></p>
+<figcaption>Altitude correction and trim tools</figcaption>
+</figure>
+</div>
+<p><strong>Altitude Correction</strong> lets you offset the GPS altitude to match terrain at launch — dial it manually or click <em>Auto from terrain</em> (requires a Cesium Ion token). <strong>Flight Trim</strong> lets you cut away pre-takeoff and post-landing data using a dual-handle range slider overlaid on the altitude profile; a <code>.bak</code> of the original is always kept.</p>
+<hr>
+</section>
+</section>
+<section id="features" class="level2">
+<h2 class="anchored" data-anchor-id="features">Features</h2>
+<section id="flight-browsing" class="level3">
+<h3 class="anchored" data-anchor-id="flight-browsing">Flight Browsing</h3>
+<ul>
+<li><strong>File explorer</strong> — VS Code-style tree; browse <code>.igc</code> and <code>.kml</code> files across folders and years</li>
+<li><strong>Locations panel</strong> — clusters all flights in your library into launch sites (within 3 km); names resolved via OpenStreetMap reverse geocoding</li>
+<li><strong>Site renaming</strong> — double-click any site name to give it a custom label that persists across sessions</li>
+<li><strong>Global search</strong> — <code>Ctrl+K</code> palette searches flight sites and individual flights; geocodes any place name so you can fly the camera anywhere</li>
+<li><strong>File type filter</strong> — toggle IGC and KML visibility independently</li>
+<li><strong>Back / Forward</strong> navigation — browser-style history for quick switching between flights and views</li>
+</ul>
+</section>
+<section id="map-visualisation" class="level3">
+<h3 class="anchored" data-anchor-id="map-visualisation">Map &amp; Visualisation</h3>
+<ul>
+<li><strong>3D globe</strong> — interactive CesiumJS globe; satellite, topo, street, and canvas base layers</li>
+<li><strong>Altitude-gradient flight track</strong> — polyline colour-coded from low (blue) to high (red) rendered at GPS altitude</li>
+<li><strong>Animated pilot marker</strong> — dot interpolates along the track in sync with the timeline</li>
+<li><strong>Shadow curtain</strong> — semi-transparent vertical wall trails behind the glider during playback, showing the ground track and altitude profile simultaneously</li>
+<li><strong>3D terrain</strong> — Cesium World Terrain elevation model (requires a free Cesium Ion token)</li>
+<li><strong>Multiple base layers</strong> — ESRI Satellite, ESRI Topo, National Geographic, OpenTopoMap, OpenStreetMap, Bing Aerial, Bing Roads, ESRI Light/Dark Grey, Carto Light/Dark</li>
+<li><strong>Road overlay</strong> — ESRI road layer on top of any base</li>
+<li><strong>Map controls</strong> — zoom, reset north, fly-to-flight</li>
+</ul>
+</section>
+<section id="airspace" class="level3">
+<h3 class="anchored" data-anchor-id="airspace">Airspace</h3>
+<ul>
+<li><strong>Australian airspace</strong> — downloads the current OpenAir dataset from <a href="https://xcaustralia.org/download/">xcaustralia.org</a>; 3D extruded polygons colour-coded by class (CTR = red, Class D = blue, Restricted = orange, etc.)</li>
+<li><strong>30-day cache</strong> — loads instantly on restart; background check alerts when new data is available</li>
+<li><strong>Manual import</strong> — load any <code>.txt</code> OpenAir file as a fallback</li>
+<li><strong>Configurable source URL</strong> — change the download endpoint in Settings</li>
+</ul>
+</section>
+<section id="site-guide-zones" class="level3">
+<h3 class="anchored" data-anchor-id="site-guide-zones">Site Guide Zones</h3>
+<ul>
+<li><strong>Landing &amp; no-landing zones</strong> — zone polygons from <a href="https://siteguide.org.au/Downloads">siteguide.org.au</a>; ground-clamped overlays on the 3D map</li>
+<li><strong>Colour coding</strong> — blue = landing, red = no landing, amber = emergency, orange = no launch, yellow = powerline, orange-red = hazard</li>
+<li><strong>Hover tooltip</strong> — zone type and name on mouse-over</li>
+<li><strong>Map legend</strong> — shows the zone types present in the loaded data</li>
+<li><strong>7-day cache</strong></li>
+</ul>
+</section>
+<section id="flight-statistics-charts" class="level3">
+<h3 class="anchored" data-anchor-id="flight-statistics-charts">Flight Statistics &amp; Charts</h3>
+<ul>
+<li><strong>Stats panel</strong> — duration, max/min altitude, altitude gain, max/average speed, total distance</li>
+<li><strong>Live charts</strong> — altitude, speed, and vario profiles against time; playback cursor stays in sync</li>
+<li><strong>Unit switching</strong> — metric (m, km, km/h) or imperial (ft, mi, kts)</li>
+</ul>
+</section>
+<section id="logbook-1" class="level3">
+<h3 class="anchored" data-anchor-id="logbook-1">Logbook</h3>
+<ul>
+<li><strong>Timeline view</strong> — all flights plotted as lollipops sized by duration and coloured by launch site</li>
+<li><strong>Hover / click</strong> to lock a flight and see stats in the right panel</li>
+<li><strong>View on map</strong> — one click loads the full flight and flies the camera there</li>
+<li><strong>Date filtering</strong> — show all flights, last 12 months, or a custom date range</li>
+</ul>
+</section>
+<section id="altitude-correction" class="level3">
+<h3 class="anchored" data-anchor-id="altitude-correction">Altitude Correction</h3>
+<ul>
+<li><strong>Per-flight offset</strong> — dial in a metres adjustment to reconcile GPS altitude against terrain</li>
+<li><strong>Auto from terrain</strong> — one-click calculation using the Cesium terrain height at launch</li>
+<li><strong>Persisted</strong> — offset saved per-flight in <code>flight-notes.json</code>; restored automatically on reload</li>
+</ul>
+</section>
+<section id="flight-trim" class="level3">
+<h3 class="anchored" data-anchor-id="flight-trim">Flight Trim</h3>
+<ul>
+<li><strong>Dual-handle range slider</strong> — visually trim pre-takeoff and post-landing clutter</li>
+<li><strong>Non-destructive</strong> — original file always backed up as <code>.igc.bak</code> before any write</li>
+<li><strong>Restore</strong> — one-click revert to the original at any time; backup never deleted by the app</li>
+</ul>
+</section>
+<section id="timeline-playback" class="level3">
+<h3 class="anchored" data-anchor-id="timeline-playback">Timeline &amp; Playback</h3>
+<ul>
+<li><strong>Scrubber</strong> — drag to any point in the flight</li>
+<li><strong>Play / pause</strong> with variable speed (1× – 50×)</li>
+<li><strong>Jump to start / end</strong></li>
+</ul>
+</section>
+<section id="settings-customisation" class="level3">
+<h3 class="anchored" data-anchor-id="settings-customisation">Settings &amp; Customisation</h3>
+<ul>
+<li>Dark / light theme</li>
+<li>Default zoom altitude</li>
+<li>Reopen last folder on startup</li>
+<li>Cesium Ion token (enables 3D terrain)</li>
+<li>Bing Maps key (enables Bing imagery layers)</li>
+<li>Airspace source URL</li>
+<li>All settings persisted locally; API keys stored in a separate <code>.secrets</code> file excluded from git</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="supported-file-formats" class="level2">
+<h2 class="anchored" data-anchor-id="supported-file-formats">Supported File Formats</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 42%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Format</th>
+<th>Extension</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>IGC</td>
+<td><code>.igc</code></td>
+<td>FAI flight recorder format; reads B-records (GPS fixes) and H-records (metadata)</td>
+</tr>
+<tr class="even">
+<td>KML</td>
+<td><code>.kml</code></td>
+<td>Google Earth format; reads <code>&lt;gx:coord&gt;</code> and <code>&lt;coordinates&gt;</code> track elements</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<section id="download-windows" class="level3">
+<h3 class="anchored" data-anchor-id="download-windows">Download (Windows)</h3>
+<p>Grab the latest installer from the <a href="https://github.com/RPBatchelor/igc-studio/releases/latest">Releases page</a>:</p>
+<ul>
+<li><strong><code>IGC Studio_x.x.x_x64-setup.exe</code></strong> — NSIS installer <em>(recommended)</em></li>
+<li><strong><code>IGC Studio_x.x.x_x64_en-US.msi</code></strong> — MSI installer</li>
+</ul>
+<p>Run the installer, launch <strong>IGC Studio</strong> from the Start menu, and open a folder containing your flight logs.</p>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> Windows may show a SmartScreen warning on first run because the app is not yet code-signed. Click <strong>More info → Run anyway</strong> to proceed.</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="development" class="level2">
+<h2 class="anchored" data-anchor-id="development">Development</h2>
+<section id="prerequisites" class="level3">
+<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
+<ul>
+<li><a href="https://nodejs.org">Node.js</a> 18+</li>
+<li><a href="https://rustup.rs">Rust</a> toolchain</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install Rust via rustup (Windows)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">winget</span> install Rustlang.Rustup</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="run-in-development" class="level3">
+<h3 class="anchored" data-anchor-id="run-in-development">Run in development</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/RPBatchelor/igc-studio.git</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> igc-studio</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> tauri dev</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="build-a-release-installer" class="level3">
+<h3 class="anchored" data-anchor-id="build-a-release-installer">Build a release installer</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npx</span> tauri build</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Outputs to src-tauri/target/release/bundle/</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="project-structure" class="level3">
+<h3 class="anchored" data-anchor-id="project-structure">Project structure</h3>
+<pre><code>igc-studio/
+├── src/                          # React / TypeScript frontend
+│   ├── components/
+│   │   ├── explorer/             # FileExplorer, LocationsPanel, MapLayers
+│   │   ├── layout/               # PanelLayout, custom title bar
+│   │   ├── logbook/              # LogbookView, LogbookPanel, LogbookTimeline
+│   │   ├── map/                  # FlightMap (CesiumJS) + hooks
+│   │   ├── search/               # GlobalSearch palette
+│   │   ├── sites/                # SiteInfoPanel, SiteInfoEditor, SiteFiltersPanel
+│   │   ├── stats/                # FlightStats, FlightCharts, FlightNotes,
+│   │   │                         #   FlightAltitudeCorrection, FlightTrim
+│   │   └── timeline/             # TimelineScrubber
+│   ├── hooks/                    # useFileSystem, useFlightAnimation
+│   ├── lib/                      # airspaceApi, airspaceParser, sgZonesApi,
+│   │                             #   flightLoader, flightTrimmer, settingsDb,
+│   │                             #   siteDb, siteScanner, stats, tilePrefetch
+│   ├── parsers/                  # IGC &amp; KML parsers, shared TypeScript types
+│   └── stores/                   # Zustand global store (flightStore)
+└── src-tauri/                    # Tauri v2 Rust backend
+    ├── src/
+    │   └── commands/fs.rs        # read_directory, read_file_text,
+    │                             #   write_file_text, scan_flights,
+    │                             #   fetch_url_text, get_data_dir
+    └── capabilities/             # Tauri permission declarations</code></pre>
+</section>
+<section id="code-style" class="level3">
+<h3 class="anchored" data-anchor-id="code-style">Code style</h3>
+<ul>
+<li>TypeScript strict mode — no <code>any</code> unless unavoidable</li>
+<li>React functional components with hooks only</li>
+<li>Zustand store actions are plain setters; async logic lives in <code>src/lib/</code> or hooks</li>
+<li>New Tauri commands go in <code>src-tauri/src/commands/fs.rs</code> and must be registered in <code>src-tauri/src/lib.rs</code> and <code>capabilities/default.json</code></li>
+<li>Type-check before opening a PR: <code>npx tsc --noEmit</code></li>
+</ul>
+</section>
+<section id="branches" class="level3">
+<h3 class="anchored" data-anchor-id="branches">Branches</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Branch</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>master</code></td>
+<td>Stable release — only release merges land here</td>
+</tr>
+<tr class="even">
+<td><code>dev</code></td>
+<td>Active development — all feature branches merge into <code>dev</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+</section>
+<section id="roadmap" class="level2">
+<h2 class="anchored" data-anchor-id="roadmap">Roadmap</h2>
+<ul class="task-list">
+<li><label><input type="checkbox">XC scoring and triangle detection</label></li>
+<li><label><input type="checkbox">Flight comparison — overlay multiple tracks simultaneously</label></li>
+<li><label><input type="checkbox">Thermal map overlay (kk7.ch)</label></li>
+<li><label><input type="checkbox">Export to GPX / KMZ</label></li>
+<li><label><input type="checkbox">macOS and Linux builds</label></li>
+<li><label><input type="checkbox">Code signing for Windows (no SmartScreen warning)</label></li>
+</ul>
+<hr>
+</section>
+<section id="tech-stack" class="level2">
+<h2 class="anchored" data-anchor-id="tech-stack">Tech Stack</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Desktop shell</td>
+<td><a href="https://tauri.app">Tauri v2</a> + Rust</td>
+</tr>
+<tr class="even">
+<td>UI framework</td>
+<td><a href="https://react.dev">React 19</a> + TypeScript</td>
+</tr>
+<tr class="odd">
+<td>Build tool</td>
+<td><a href="https://vitejs.dev">Vite</a></td>
+</tr>
+<tr class="even">
+<td>3D map</td>
+<td><a href="https://cesium.com">CesiumJS 1.139</a></td>
+</tr>
+<tr class="odd">
+<td>Charts</td>
+<td><a href="https://recharts.org">Recharts</a></td>
+</tr>
+<tr class="even">
+<td>State</td>
+<td><a href="https://zustand-demo.pmnd.rs">Zustand</a></td>
+</tr>
+<tr class="odd">
+<td>Icons</td>
+<td><a href="https://lucide.dev">Lucide React</a></td>
+</tr>
+<tr class="even">
+<td>HTTP (Rust)</td>
+<td><a href="https://docs.rs/reqwest">reqwest</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="data-sources" class="level2">
+<h2 class="anchored" data-anchor-id="data-sources">Data Sources</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>Usage</th>
+<th>License</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://xcaustralia.org/download/">xcaustralia.org</a></td>
+<td>Australian airspace (OpenAir)</td>
+<td>Free for personal use</td>
+</tr>
+<tr class="even">
+<td><a href="https://siteguide.org.au/Downloads">siteguide.org.au</a></td>
+<td>Landing/no-landing zone polygons</td>
+<td>Free for personal use</td>
+</tr>
+<tr class="odd">
+<td><a href="https://nominatim.openstreetmap.org">OpenStreetMap Nominatim</a></td>
+<td>Forward and reverse geocoding</td>
+<td>© OpenStreetMap contributors, <a href="https://www.openstreetmap.org/copyright">ODbL</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://www.esri.com">ESRI</a></td>
+<td>Satellite, topo, and road tile layers</td>
+<td>Free for non-commercial use</td>
+</tr>
+<tr class="odd">
+<td><a href="https://cesium.com/ion/">Cesium Ion</a></td>
+<td>World Terrain elevation model</td>
+<td>Free tier available</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="license" class="level2">
+<h2 class="anchored" data-anchor-id="license">License</h2>
+<p>MIT License — see <a href="LICENSE">LICENSE</a> for full text.</p>
+<p>Copyright © 2025 Ryan Batchelor</p>
+<p>This application is intended for <strong>personal, recreational use only</strong>. It must not be used as a primary navigation tool or as a substitute for official airspace information.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
