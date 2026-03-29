@@ -68,8 +68,8 @@ export function clusterIntoSites(flights: FlightMeta[]): LocationSite[] {
       const best = mostCommon(extracted);
       if (best) site.name = best;
     }
-    // Sort flights alphabetically (filenames are date-prefixed so this is chronological)
-    site.flights.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort by full path — folders are named YY-MM-DD so path sorts chronologically
+    site.flights.sort((a, b) => a.path.localeCompare(b.path));
   }
 
   return sites.sort((a, b) => a.name.localeCompare(b.name));
