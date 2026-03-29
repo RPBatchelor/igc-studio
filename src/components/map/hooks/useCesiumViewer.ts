@@ -32,6 +32,11 @@ export function useCesiumViewer(containerRef: React.RefObject<HTMLDivElement | n
       destination: Cartesian3.fromDegrees(134.0, -25.0, 5_000_000),
     });
     viewerRef.current = viewer;
+    viewer.scene.screenSpaceCameraController.zoomFactor = 2.5; // default 5.0 — halved
+    viewer.scene.globe.tileCacheSize = 500;          // default ~100; keeps more tiles in GPU memory
+    viewer.scene.requestRenderMode = true;            // only render on scene changes, not every 16ms
+    viewer.scene.maximumRenderTimeChange = Infinity;  // never force re-render for time alone
+    viewer.scene.globe.maximumScreenSpaceError = 4;   // default 2; halves aggressive tile fetching
 
     return () => {
       viewer.destroy();

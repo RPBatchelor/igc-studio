@@ -19,7 +19,7 @@ function formatElapsed(timestamp: number, startTime: number): string {
 }
 
 export function FlightCharts() {
-  const { flightData, playbackTime, setPlaybackTime, setIsPlaying, speedUnit, altUnit } =
+  const { flightData, playbackTime, setPlaybackTime, setIsPlaying, speedUnit, altUnit, altitudeOffset } =
     useFlightStore();
 
   if (!flightData || flightData.points.length === 0) return null;
@@ -34,7 +34,7 @@ export function FlightCharts() {
     .filter(({ i }) => i % step === 0 || i === lastIdx)
     .map(({ p, i }) => ({
       time: p.timestamp,
-      altitude: Math.round(convertAlt(p.altGPS, altUnit)),
+      altitude: Math.round(convertAlt(p.altGPS + altitudeOffset, altUnit)),
       speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
       vario: parseFloat(vario[i].toFixed(1)),
     }));

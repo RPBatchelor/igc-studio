@@ -328,20 +328,29 @@ export function FlightTrim() {
   );
 
   return (
-    <div style={{ borderTop: "1px solid var(--border)", marginTop: 4 }}>
-      <button
+    <div style={{ borderTop: "1px solid var(--border)" }}>
+      <div
         onClick={() => setOpen((o) => !o)}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 6,
-          padding: "8px 12px", background: "none", border: "none",
-          cursor: "pointer", color: "var(--text-secondary)", fontSize: 12,
-          fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.6px",
-        }}
+        style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", cursor: "pointer", userSelect: "none" }}
       >
-        {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-        <Scissors size={13} />
-        Trim Flight
-      </button>
+        {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        <Scissors size={14} color="var(--accent)" />
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-bright)", flex: 1 }}>
+          Trim Flight
+        </span>
+        {hasBackup === true && (
+          <span style={{
+            fontSize: 10, fontWeight: 700,
+            background: "rgba(100,220,130,0.15)",
+            border: "1px solid rgba(100,220,130,0.4)",
+            color: "#64dc82",
+            borderRadius: 10,
+            padding: "1px 7px",
+          }}>
+            Trimmed
+          </span>
+        )}
+      </div>
 
       {open && flightData.hasSyntheticTimestamps && (
         <div style={{

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Map as MapIcon, Lock } from "lucide-react";
 import type { LogbookEntry } from "../../parsers/types";
+import { useFlightStore } from "../../stores/flightStore";
 
 // ── palette ────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ export function LogbookTimeline({ entries, onGoToFlight }: Props) {
   const [width, setWidth]         = useState(600);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const setSelectedLogbookEntry = useFlightStore((s) => s.setSelectedLogbookEntry);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -148,7 +150,11 @@ export function LogbookTimeline({ entries, onGoToFlight }: Props) {
 
   const handleMarkerClick = (i: number) => {
     // Toggle selection: click same → deselect, click different → select
-    setSelectedIdx((prev) => (prev === i ? null : i));
+    setSelectedIdx((prev) => {
+      const next = prev === i ? null : i;
+      setSelectedLogbookEntry(next !== null ? markers[next].entry : null);
+      return next;
+    });
   };
 
   const handleMarkerEnter = (i: number) => {

@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 export interface FlightNoteEntry {
   glider?: string;
   notes?: string;
+  altitudeOffset?: number; // metres; non-destructive correction applied at render time
 }
 
 export type FlightNotesDb = Record<string, FlightNoteEntry>; // key = normalised flight file path

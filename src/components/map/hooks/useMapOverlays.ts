@@ -72,6 +72,7 @@ export function useMapOverlays(viewerRef: React.RefObject<Viewer | null>) {
       });
       airspaceEntitiesRef.current.push(entity);
     }
+    viewer.scene.requestRender();
   }, [airspaces, overlays]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Render Site Guide landing/no-landing zones (ground-clamped polygons)
@@ -100,6 +101,7 @@ export function useMapOverlays(viewerRef: React.RefObject<Viewer | null>) {
       });
       sgZoneEntitiesRef.current.push(entity);
     }
+    viewer.scene.requestRender();
   }, [sgZones, overlays]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { zoneTooltip };

@@ -19,7 +19,7 @@ function formatDuration(seconds: number): string {
 }
 
 export function FlightStatsPanel() {
-  const { flightData, selectedFile, sites, speedUnit, altUnit } = useFlightStore();
+  const { flightData, selectedFile, sites, speedUnit, altUnit, altitudeOffset } = useFlightStore();
   const stats = flightData?.stats;
 
   const siteName = selectedFile
@@ -43,8 +43,8 @@ export function FlightStatsPanel() {
   const items = [
     { icon: Clock,        label: "Duration",     value: formatDuration(stats.duration) },
     { icon: Route,        label: "Distance",     value: fmtDist(stats.totalDistance, altUnit) },
-    { icon: ArrowUp,      label: "Max Altitude", value: fmtAlt(stats.maxAltitude, altUnit) },
-    { icon: ArrowDown,    label: "Min Altitude", value: fmtAlt(stats.minAltitude, altUnit) },
+    { icon: ArrowUp,      label: "Max Altitude", value: fmtAlt(stats.maxAltitude + altitudeOffset, altUnit) },
+    { icon: ArrowDown,    label: "Min Altitude", value: fmtAlt(stats.minAltitude + altitudeOffset, altUnit) },
     { icon: TrendingUp,   label: "Altitude Gain",value: fmtAlt(stats.altitudeGain, altUnit) },
     { icon: TrendingUp,   label: "Max Climb",    value: `+${stats.maxClimb.toFixed(1)} m/s` },
     { icon: TrendingDown, label: "Max Sink",     value: `${stats.maxSink.toFixed(1)} m/s` },
@@ -102,6 +102,17 @@ export function FlightStatsPanel() {
           </div>
         ))}
       </div>
+
+      {altitudeOffset !== 0 && (
+        <div style={{
+          padding: "4px 16px 0",
+          fontSize: 11,
+          color: "var(--text-secondary)",
+          fontStyle: "italic",
+        }}>
+          Altitudes corrected by {altitudeOffset > 0 ? "+" : ""}{altitudeOffset} m
+        </div>
+      )}
 
       {flightData?.pilot && (
         <div

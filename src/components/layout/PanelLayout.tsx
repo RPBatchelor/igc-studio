@@ -11,10 +11,12 @@ import { FlightMap } from "../map/FlightMap";
 import { FlightStatsPanel } from "../stats/FlightStats";
 import { FlightCharts } from "../stats/FlightCharts";
 import { FlightNotes } from "../stats/FlightNotes";
+import { FlightAltitudeCorrection } from "../stats/FlightAltitudeCorrection";
 import { FlightTrim } from "../stats/FlightTrim";
 import { SiteInfoPanel } from "../sites/SiteInfoPanel";
 import { SiteInfoEditor } from "../sites/SiteInfoEditor";
 import { SiteFiltersPanel } from "../sites/SiteFiltersPanel";
+import { LogbookStatsPanel } from "../logbook/LogbookStatsPanel";
 import { TimelineScrubber } from "../timeline/TimelineScrubber";
 import { LogbookView } from "../logbook/LogbookView";
 import { LogbookPanel } from "../logbook/LogbookPanel";
@@ -321,11 +323,14 @@ export function PanelLayout() {
         <div style={{ width: right.size, flexShrink: 0, overflow: "auto", background: "var(--bg-secondary)", borderLeft: "1px solid var(--border)", display: "flex", flexDirection: "column" }}>
           {activeView === "sites" ? (
             <SiteFiltersPanel />
+          ) : activeView === "logbook" ? (
+            <LogbookStatsPanel />
           ) : (
             <>
               <FlightStatsPanel />
               <FlightCharts />
               <FlightNotes />
+              <FlightAltitudeCorrection />
               <FlightTrim />
             </>
           )}

@@ -7,6 +7,7 @@ import { clusterIntoSites, geocodeSites } from "../lib/siteScanner";
 import { loadSiteDb, saveSiteDb, resolveDisplayName } from "../lib/siteDb";
 import { scanLogbook } from "../lib/logbookScanner";
 import { loadFlightData } from "../lib/flightLoader";
+import { prefetchSiteTiles } from "../lib/tilePrefetch";
 
 export function useFileSystem() {
   const store = useFlightStore();
@@ -54,6 +55,7 @@ export function useFileSystem() {
       if (gen !== scanGenRef.current) return;
       store.setSites(sites);
       store.setSitesLoading(false);
+      prefetchSiteTiles(sites, useFlightStore.getState().baseLayer); // fire-and-forget via SW
 
       // Kick off logbook scan in the background immediately after sites are ready
       store.setLogbookLoading(true);

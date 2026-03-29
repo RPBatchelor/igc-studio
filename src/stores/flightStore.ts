@@ -83,12 +83,20 @@ interface FlightStore {
   setSiteFilterRating: (s: string) => void;
   clearSiteFilters: () => void;
 
+  // Altitude correction
+  altitudeOffset: number;          // metres; applied at render time; reset on new flight load
+  launchTerrainAlt: number | null; // terrain height at first GPS fix; null until sampled
+  setAltitudeOffset: (n: number) => void;
+  setLaunchTerrainAlt: (n: number | null) => void;
+
   // Flight notes
   flightNotesDb: FlightNotesDb;
   setFlightNotesDb: (db: FlightNotesDb) => void;
   updateFlightNote: (path: string, patch: Partial<FlightNoteEntry>) => FlightNotesDb;
 
   // Logbook
+  selectedLogbookEntry: LogbookEntry | null;
+  setSelectedLogbookEntry: (entry: LogbookEntry | null) => void;
   logbookEntries: LogbookEntry[] | null;
   logbookLoading: boolean;
   logbookProgress: { done: number; total: number } | null;
@@ -219,6 +227,8 @@ export const useFlightStore = create<FlightStore>((set) => ({
     return next;
   },
 
+  selectedLogbookEntry: null,
+  setSelectedLogbookEntry: (entry) => set({ selectedLogbookEntry: entry }),
   logbookEntries: null,
   logbookLoading: false,
   logbookProgress: null,
@@ -240,12 +250,19 @@ export const useFlightStore = create<FlightStore>((set) => ({
       return { expandedDirs: next };
     }),
   setSelectedFile: (path) => set({ selectedFile: path }),
+  altitudeOffset: 0,
+  launchTerrainAlt: null,
+  setAltitudeOffset: (n) => set({ altitudeOffset: n }),
+  setLaunchTerrainAlt: (n) => set({ launchTerrainAlt: n }),
+
   setFlightData: (data) =>
     set({
       flightData: data,
       playbackTime: data?.points[0]?.timestamp ?? 0,
       isPlaying: false,
       isStopped: true,
+      altitudeOffset: 0,
+      launchTerrainAlt: null,
     }),
   setPlaybackTime: (time) => set({ playbackTime: time }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
@@ -292,7 +309,7 @@ export const useFlightStore = create<FlightStore>((set) => ({
   setGroupSitesByType: (b) => set({ groupSitesByType: b }),
   setShowShadowCurtain: (b) => set({ showShadowCurtain: b }),
   setPendingCameraTarget: (t) => set({ pendingCameraTarget: t }),
-  setActiveView: (v) => set({ activeView: v }),
+  setActiveView: (v) => set({ activeView: v, ...(v === "logbook" ? { selectedLogbookEntry: null } : {}) }),
   setPendingLocationSiteId: (id) => set({ pendingLocationSiteId: id }),
   setSelectedSiteId: (id) => set({ selectedSiteId: id }),
   setZoomAltitude: (alt) => set({ zoomAltitude: alt }),

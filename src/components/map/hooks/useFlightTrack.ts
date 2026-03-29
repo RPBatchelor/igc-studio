@@ -23,7 +23,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
   // Monotonic index hint — avoids full binary search during normal forward playback
   const lastPilotIdxRef    = useRef<number>(0);
 
-  const { flightData, playbackTime, isStopped, showShadowCurtain, zoomAltitude } = useFlightStore();
+  const { flightData, playbackTime, isStopped, showShadowCurtain, zoomAltitude, altitudeOffset } = useFlightStore();
 
   // Build colour-segmented flight track when flight data changes
   useEffect(() => {
@@ -45,8 +45,8 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     for (let i = 0; i < pts.length - 1; i++) {
       const seg: ColorSegment = { startIdx: i, endIdx: i + 1, color: colors[i], entity: null };
       const positions = [
-        Cartesian3.fromDegrees(pts[i].lng,   pts[i].lat,   pts[i].altGPS),
-        Cartesian3.fromDegrees(pts[i+1].lng, pts[i+1].lat, pts[i+1].altGPS),
+        Cartesian3.fromDegrees(pts[i].lng,   pts[i].lat,   pts[i].altGPS   + altitudeOffset),
+        Cartesian3.fromDegrees(pts[i+1].lng, pts[i+1].lat, pts[i+1].altGPS + altitudeOffset),
       ];
       seg.entity = viewer.entities.add({
         show: false,
@@ -63,8 +63,14 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     const tp = viewerRef.current?.terrainProvider;
     if (tp) {
       sampleTerrainMostDetailed(tp, cartographics)
-        .then((sampled) => { terrainHeightsRef.current = sampled.map((c) => c.height ?? 0); })
-        .catch(() => { terrainHeightsRef.current = []; });
+        .then((sampled) => {
+          terrainHeightsRef.current = sampled.map((c) => c.height ?? 0);
+          useFlightStore.getState().setLaunchTerrainAlt(sampled[0]?.height ?? 0);
+        })
+        .catch(() => {
+          terrainHeightsRef.current = [];
+          useFlightStore.getState().setLaunchTerrainAlt(null);
+        });
     }
 
     // Pre-allocate curtain segment entities — updated in-place during playback
@@ -91,7 +97,9 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
       const lng = (Math.min(...pts.map((p) => p.lng)) + Math.max(...pts.map((p) => p.lng))) / 2;
       viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(lng, lat, zoomAltitude), duration: 1.5 });
     }
-  }, [flightData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    viewer.scene.requestRender();
+  }, [flightData, altitudeOffset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update pilot marker + progressive coloured trail
   useEffect(() => {
@@ -102,7 +110,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     if (existing) viewer.entities.remove(existing);
 
     const pts = flightData.points;
-    let pos = { lat: pts[0].lat, lng: pts[0].lng, alt: pts[0].altGPS };
+    let pos = { lat: pts[0].lat, lng: pts[0].lng, alt: pts[0].altGPS + altitudeOffset };
 
     // Find current index: scan forward from last known position during normal playback;
     // fall back to binary search when scrubbing backward.
@@ -133,7 +141,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
       pos = {
         lat: a.lat + (b.lat - a.lat) * t,
         lng: a.lng + (b.lng - a.lng) * t,
-        alt: a.altGPS + (b.altGPS - a.altGPS) * t,
+        alt: a.altGPS + (b.altGPS - a.altGPS) * t + altitudeOffset,
       };
     }
 
@@ -173,7 +181,9 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
       position: Cartesian3.fromDegrees(pos.lng, pos.lat, pos.alt),
       point: { pixelSize: 12, color: Color.RED, outlineColor: Color.WHITE, outlineWidth: 2 },
     });
-  }, [flightData, playbackTime, isStopped]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    viewer.scene.requestRender();
+  }, [flightData, playbackTime, isStopped, altitudeOffset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Shadow curtain — continuous-gradient vertical wall trailing 60 s behind the pilot
   useEffect(() => {
@@ -217,6 +227,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
         iAlt = a.altGPS + (b.altGPS - a.altGPS) * frac;
       }
     }
+    iAlt += altitudeOffset;
 
     const trailStartTs = playbackTime - TRAIL_MS;
     let trailStartIdx = 0;
@@ -232,10 +243,10 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     type TPt = { lng: number; lat: number; alt: number; th: number; ts: number };
     const trail: TPt[] = [];
     for (let i = trailStartIdx; i <= currentIdx; i++) {
-      trail.push({ lng: pts[i].lng, lat: pts[i].lat, alt: pts[i].altGPS,
+      trail.push({ lng: pts[i].lng, lat: pts[i].lat, alt: pts[i].altGPS + altitudeOffset,
                    th: terrainHeightsRef.current[i] ?? 0, ts: pts[i].timestamp });
     }
-    trail.push({ lng: iLng, lat: iLat, alt: iAlt,
+    trail.push({ lng: iLng, lat: iLat, alt: iAlt, // iAlt already has offset applied
                  th: terrainHeightsRef.current[currentIdx] ?? 0, ts: playbackTime });
 
     const numSegs = trail.length - 1;
@@ -263,5 +274,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
 
       entity.show = true;
     }
-  }, [flightData, playbackTime, isStopped, showShadowCurtain]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    viewerRef.current?.scene.requestRender();
+  }, [flightData, playbackTime, isStopped, showShadowCurtain, altitudeOffset]); // eslint-disable-line react-hooks/exhaustive-deps
 }
