@@ -181,7 +181,6 @@ export function SettingsView() {
     showShadowCurtain, setShowShadowCurtain,
     smoothFlightPath,  setSmoothFlightPath,
     syncFilePath,      setSyncFilePath,
-    rootFolder,        flightNotesDb,       siteDb,
   } = useFlightStore();
 
   const [ionDraft,         setIonDraft]         = useState(cesiumIonToken);

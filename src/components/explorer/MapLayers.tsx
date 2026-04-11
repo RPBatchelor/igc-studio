@@ -100,6 +100,8 @@ export function MapLayers() {
       showCameraOverlay: s.showCameraOverlay, lastFolderPath: s.rootFolder ?? "",
       showFullFilename: s.showFullFilename, showBakFiles: s.showBakFiles,
       groupSitesByType: s.groupSitesByType,
+      showShadowCurtain: s.showShadowCurtain, smoothFlightPath: s.smoothFlightPath,
+      syncFilePath: s.syncFilePath,
       activeOverlays: Array.from(next),
     });
   };
