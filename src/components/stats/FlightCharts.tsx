@@ -10,6 +10,7 @@ import {
 import { useFlightStore } from "../../stores/flightStore";
 import { convertSpeed, convertAlt, speedUnitLabel, altUnitLabel } from "../../lib/units";
 import { computeVario } from "../../lib/stats";
+import { COMPARE_HEX_COLORS } from "../../lib/compareColors";
 
 function formatElapsed(timestamp: number, startTime: number): string {
   const elapsed = (timestamp - startTime) / 1000;
@@ -19,7 +20,7 @@ function formatElapsed(timestamp: number, startTime: number): string {
 }
 
 export function FlightCharts() {
-  const { flightData, playbackTime, setPlaybackTime, setIsPlaying, speedUnit, altUnit, altitudeOffset } =
+  const { flightData, comparedFlights, playbackTime, setPlaybackTime, setIsPlaying, speedUnit, altUnit, altitudeOffset } =
     useFlightStore();
 
   if (!flightData || flightData.points.length === 0) return null;
@@ -38,6 +39,24 @@ export function FlightCharts() {
       speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
       vario: parseFloat(vario[i].toFixed(1)),
     }));
+
+  // Build per-comparison dataset, remapped to elapsed seconds from primary start
+  const compareData = comparedFlights.map((cf) => {
+    const cfStep = Math.max(1, Math.floor(cf.points.length / 500));
+    const cfVario = computeVario(cf.points);
+    const cfLastIdx = cf.points.length - 1;
+    const cfOrigin = cf.points[0].timestamp;
+    return cf.points
+      .map((p, i) => ({ p, i }))
+      .filter(({ i }) => i % cfStep === 0 || i === cfLastIdx)
+      .map(({ p, i }) => ({
+        // Remap to elapsed ms from primary origin so x-axes align
+        time: startTime + (p.timestamp - cfOrigin),
+        altitude: Math.round(convertAlt(p.altGPS, altUnit)),
+        speed: parseFloat(convertSpeed(p.speed ?? 0, speedUnit).toFixed(1)),
+        vario: parseFloat(cfVario[i].toFixed(1)),
+      }));
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleClick = (e: any) => {
@@ -93,6 +112,19 @@ export function FlightCharts() {
                 formatter={(value) => [`${value ?? ""} ${unit}`, label]}
               />
               <Line type="monotone" dataKey={key} stroke={color} dot={false} strokeWidth={1.5} isAnimationActive={false} />
+              {compareData.map((cd, ci) => (
+                <Line
+                  key={`${key}-c${ci}`}
+                  data={cd}
+                  type="monotone"
+                  dataKey={key}
+                  stroke={COMPARE_HEX_COLORS[ci]}
+                  dot={false}
+                  strokeWidth={1.5}
+                  strokeDasharray="4 2"
+                  isAnimationActive={false}
+                />
+              ))}
               {key === "vario" && <ReferenceLine y={0} stroke="rgba(255,255,255,0.3)" strokeWidth={1} strokeDasharray="4 3" />}
               <ReferenceLine x={playbackTime} stroke="var(--accent)" strokeWidth={2} />
             </LineChart>

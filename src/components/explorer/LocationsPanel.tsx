@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Navigation, Globe, Archive, ChevronRight, ChevronDown, Loader } from "lucide-react";
+import { MapPin, Navigation, Globe, Archive, ChevronRight, ChevronDown, Loader, PlusCircle } from "lucide-react";
+import { COMPARE_HEX_COLORS } from "../../lib/compareColors";
 import { useFlightStore } from "../../stores/flightStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
 import { saveSiteDb } from "../../lib/siteDb";
@@ -26,9 +27,9 @@ export function LocationsPanel() {
     sites, sitesLoading, selectedFile, geocodingUsed, siteDb,
     updateSiteDb, setSites, visibleFileTypes, toggleFileType,
     pendingLocationSiteId, setPendingLocationSiteId,
-    showFullFilename, showBakFiles, groupSitesByType,
+    showFullFilename, showBakFiles, groupSitesByType, comparedPaths,
   } = useFlightStore();
-  const { loadFile } = useFileSystem();
+  const { loadFile, loadComparedFlight } = useFileSystem();
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const siteRowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -116,7 +117,9 @@ export function LocationsPanel() {
       selectedFile={selectedFile}
       showFullFilename={showFullFilename}
       onToggle={() => toggleSite(site.id)}
+      comparedPaths={comparedPaths}
       onFileClick={loadFile}
+      onCompareClick={loadComparedFlight}
       onRename={(name) => handleRename(site.id, name)}
       rowRef={(el) => {
         if (el) siteRowRefs.current.set(site.id, el);
@@ -190,17 +193,20 @@ export function LocationsPanel() {
 }
 
 function SiteRow({
-  site, expanded, selectedFile, showFullFilename, onToggle, onFileClick, onRename, rowRef,
+  site, expanded, selectedFile, showFullFilename, comparedPaths, onToggle, onFileClick, onCompareClick, onRename, rowRef,
 }: {
   site: LocationSite;
   expanded: boolean;
   selectedFile: string | null;
   showFullFilename: boolean;
+  comparedPaths: string[];
   onToggle: () => void;
   onFileClick: (path: string, name: string) => void;
+  onCompareClick: (path: string, name: string) => void;
   onRename: (name: string) => void;
   rowRef?: (el: HTMLDivElement | null) => void;
 }) {
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -261,27 +267,46 @@ function SiteRow({
       </div>
 
       {expanded && site.flights.map((flight) => {
-        const isSelected = flight.path === selectedFile;
-        const isBak = flight.name.split(".").pop()?.toLowerCase() === "bak";
+        const isSelected   = flight.path === selectedFile;
+        const isBak        = flight.name.split(".").pop()?.toLowerCase() === "bak";
+        const compareSlot  = !isBak ? comparedPaths.indexOf(flight.path) : -1;
+        const isCompared   = compareSlot !== -1;
+        const canCompare   = !isBak && !isSelected && !isCompared && comparedPaths.length < 3;
+        const isHovered    = hoveredPath === flight.path;
         return (
           <div
             key={flight.path}
             onClick={() => onFileClick(flight.path, flight.name)}
+            onMouseEnter={() => setHoveredPath(flight.path)}
+            onMouseLeave={() => setHoveredPath(null)}
             title={flight.name}
             style={{
               display: "flex", alignItems: "center", gap: 5,
               padding: "3px 8px", paddingLeft: 32, cursor: "pointer",
-              background: isSelected ? "var(--bg-selected)" : "transparent",
+              background: isSelected ? "var(--bg-selected)" : isHovered ? "var(--bg-hover)" : "transparent",
               color: isSelected ? "var(--text-bright)" : isBak ? "var(--text-muted)" : "var(--text-secondary)",
               opacity: isBak && !isSelected ? 0.7 : 1,
             }}
-            onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "var(--bg-hover)"; }}
-            onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
           >
             {getFileIcon(flight.name)}
-            <span style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
               {formatFlightFilename(flight.name, showFullFilename)}
             </span>
+            {isCompared && (
+              <span
+                style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: COMPARE_HEX_COLORS[compareSlot] }}
+                title={`Compare ${compareSlot + 1}`}
+              />
+            )}
+            {canCompare && isHovered && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onCompareClick(flight.path, flight.name); }}
+                title="Add to comparison"
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-muted)", display: "flex", flexShrink: 0 }}
+              >
+                <PlusCircle size={13} />
+              </button>
+            )}
           </div>
         );
       })}

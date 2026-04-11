@@ -8,10 +8,12 @@ import {
   ChevronRight,
   ChevronDown,
   FolderSearch,
+  PlusCircle,
 } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
 import { useFileSystem } from "../../hooks/useFileSystem";
 import { formatFlightFilename } from "../../lib/formatFilename";
+import { COMPARE_HEX_COLORS } from "../../lib/compareColors";
 import type { FsEntry } from "../../parsers/types";
 
 const FILE_TYPES = {
@@ -31,8 +33,8 @@ function getFileType(name: string): FileTypeKey | null {
 }
 
 export function FileExplorer() {
-  const { rootFolder, entries, selectedFile, expandedDirs, visibleFileTypes, toggleFileType, showFullFilename, showBakFiles } = useFlightStore();
-  const { openFolder, loadFile, loadDirectory } = useFileSystem();
+  const { rootFolder, entries, selectedFile, expandedDirs, visibleFileTypes, toggleFileType, showFullFilename, showBakFiles, comparedPaths } = useFlightStore();
+  const { openFolder, loadFile, loadDirectory, loadComparedFlight } = useFileSystem();
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", background: "var(--bg-secondary)" }}>
@@ -70,7 +72,9 @@ export function FileExplorer() {
               visibleFileTypes={visibleFileTypes}
               showFullFilename={showFullFilename}
               showBakFiles={showBakFiles}
+              comparedPaths={comparedPaths}
               onFileClick={loadFile}
+              onCompareClick={loadComparedFlight}
               onLoadDir={loadDirectory}
             />
           ))
@@ -124,7 +128,9 @@ function TreeNode({
   visibleFileTypes,
   showFullFilename,
   showBakFiles,
+  comparedPaths,
   onFileClick,
+  onCompareClick,
   onLoadDir,
 }: {
   entry: FsEntry;
@@ -134,12 +140,15 @@ function TreeNode({
   visibleFileTypes: Set<FileTypeKey>;
   showFullFilename: boolean;
   showBakFiles: boolean;
+  comparedPaths: string[];
   onFileClick: (path: string, name: string) => void;
+  onCompareClick: (path: string, name: string) => void;
   onLoadDir: (path: string) => Promise<FsEntry[]>;
 }) {
   const { toggleDir } = useFlightStore();
   const expanded = expandedDirs.has(entry.path);
   const [children, setChildren] = useState<FsEntry[]>([]);
+  const [hovered, setHovered] = useState(false);
   const isSelected = entry.path === selectedFile;
 
   useEffect(() => {
@@ -163,6 +172,14 @@ function TreeNode({
   const FileIcon = fileType ? FILE_TYPES[fileType].icon : null;
   const fileColor = fileType ? FILE_TYPES[fileType].color : "#858585";
 
+  // Comparison state for flight files
+  const compareSlot = !entry.isDir && fileType && fileType !== "bak"
+    ? comparedPaths.indexOf(entry.path)
+    : -1;
+  const isCompared   = compareSlot !== -1;
+  const canCompare   = !entry.isDir && fileType && fileType !== "bak"
+    && !isSelected && !isCompared && comparedPaths.length < 3;
+
   const handleClick = () => {
     if (entry.isDir) toggleDir(entry.path);
     else onFileClick(entry.path, entry.name);
@@ -172,6 +189,8 @@ function TreeNode({
     <>
       <div
         onClick={handleClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -180,13 +199,11 @@ function TreeNode({
           paddingLeft: depth * 16 + 6,
           cursor: "pointer",
           borderRadius: 3,
-          background: isSelected ? "var(--bg-selected)" : "transparent",
+          background: isSelected ? "var(--bg-selected)" : hovered ? "var(--bg-hover)" : "transparent",
           color: isSelected ? "var(--text-bright)" : "var(--text-primary)",
           whiteSpace: "nowrap",
           overflow: "hidden",
         }}
-        onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "var(--bg-hover)"; }}
-        onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
       >
         {entry.isDir ? (
           <>
@@ -201,9 +218,31 @@ function TreeNode({
             {FileIcon && <FileIcon size={14} color={fileColor} />}
           </>
         )}
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", fontSize: 13 }}>
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", fontSize: 13, flex: 1 }}>
           {fileType ? formatFlightFilename(entry.name, showFullFilename) : entry.name}
         </span>
+        {/* Comparison indicator / add button for flight files */}
+        {isCompared && (
+          <span
+            style={{
+              width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+              background: COMPARE_HEX_COLORS[compareSlot],
+            }}
+            title={`Compare ${compareSlot + 1}`}
+          />
+        )}
+        {!isCompared && canCompare && hovered && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onCompareClick(entry.path, entry.name); }}
+            title="Add to comparison"
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              color: "var(--text-muted)", display: "flex", flexShrink: 0,
+            }}
+          >
+            <PlusCircle size={13} />
+          </button>
+        )}
       </div>
 
       {expanded &&
@@ -217,7 +256,9 @@ function TreeNode({
             visibleFileTypes={visibleFileTypes}
             showFullFilename={showFullFilename}
             showBakFiles={showBakFiles}
+            comparedPaths={comparedPaths}
             onFileClick={onFileClick}
+            onCompareClick={onCompareClick}
             onLoadDir={onLoadDir}
           />
         ))}

@@ -325,7 +325,7 @@ export function PanelLayout() {
             <SiteFiltersPanel />
           ) : activeView === "logbook" ? (
             <LogbookStatsPanel />
-          ) : (
+          ) : activeView === "settings" ? null : (
             <>
               <FlightStatsPanel />
               <FlightCharts />

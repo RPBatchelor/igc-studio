@@ -7,6 +7,8 @@ import {
 } from "cesium";
 import { useFlightStore } from "../../../stores/flightStore";
 import { computeTrackColors, type ColorSegment } from "../lib/trackColors";
+import { catmullRomSpline } from "../../../lib/interpolate";
+import type { TrackPoint } from "../../../parsers/types";
 
 // Pre-computed base colour for the shadow curtain (#FF5500 warm orange)
 const CURTAIN_BASE_COLOR = new Color(1.0, 85 / 255, 0, 1.0);
@@ -22,8 +24,12 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
   const prevSiteIdRef      = useRef<string | null>(null);
   // Monotonic index hint — avoids full binary search during normal forward playback
   const lastPilotIdxRef    = useRef<number>(0);
+  // The points array actually used to build segments (raw or spline-interpolated).
+  // Playback and curtain effects must index into this same array, not flightData.points,
+  // otherwise the trail lags behind the pilot marker when smoothFlightPath is on.
+  const renderedPtsRef = useRef<TrackPoint[]>([]);
 
-  const { flightData, playbackTime, isStopped, showShadowCurtain, zoomAltitude, altitudeOffset } = useFlightStore();
+  const { flightData, playbackTime, isStopped, showShadowCurtain, smoothFlightPath, zoomAltitude, altitudeOffset } = useFlightStore();
 
   // Build colour-segmented flight track when flight data changes
   useEffect(() => {
@@ -39,7 +45,14 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
 
     if (!viewer || !flightData || flightData.points.length < 2) return;
 
-    const pts = flightData.points;
+    // Subdivide adaptively: cap at 8 000 output points so very long flights
+    // don't blow the Cesium entity budget. Below ~2 000 raw points use 4×.
+    const rawPts = flightData.points;
+    const subdivisions = smoothFlightPath
+      ? Math.max(2, Math.min(4, Math.floor(8000 / rawPts.length)))
+      : 1;
+    const pts = smoothFlightPath ? catmullRomSpline(rawPts, subdivisions) : rawPts;
+    renderedPtsRef.current = pts;
     const colors = computeTrackColors(pts);
 
     for (let i = 0; i < pts.length - 1; i++) {
@@ -99,7 +112,7 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     }
 
     viewer.scene.requestRender();
-  }, [flightData, altitudeOffset]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flightData, altitudeOffset, smoothFlightPath]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update pilot marker + progressive coloured trail
   useEffect(() => {
@@ -109,7 +122,9 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
     const existing = viewer.entities.getById("pilot");
     if (existing) viewer.entities.remove(existing);
 
-    const pts = flightData.points;
+    // Use the rendered (possibly spline-interpolated) array so that segment indices
+    // and the pilot marker position are always consistent with each other.
+    const pts = renderedPtsRef.current.length > 0 ? renderedPtsRef.current : flightData.points;
     let pos = { lat: pts[0].lat, lng: pts[0].lng, alt: pts[0].altGPS + altitudeOffset };
 
     // Find current index: scan forward from last known position during normal playback;
@@ -195,6 +210,8 @@ export function useFlightTrack(viewerRef: React.RefObject<Viewer | null>) {
       return;
     }
 
+    // Curtain uses raw flight points — it's a physics trail, not a cosmetic display,
+    // so smooth-path interpolation doesn't apply here.
     const pts = flightData.points;
     const TRAIL_MS = 60_000;
     const MAX_ALPHA = 0.65;

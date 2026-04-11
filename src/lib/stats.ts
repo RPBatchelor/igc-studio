@@ -76,7 +76,6 @@ export function computeStats(points: TrackPoint[]): FlightStats {
 
   let maxAlt = -Infinity;
   let minAlt = Infinity;
-  let altGain = 0;
   let maxSpd = 0;
 
   for (let i = 0; i < points.length; i++) {
@@ -84,10 +83,6 @@ export function computeStats(points: TrackPoint[]): FlightStats {
     if (p.altGPS > maxAlt) maxAlt = p.altGPS;
     if (p.altGPS < minAlt) minAlt = p.altGPS;
     if (p.speed > maxSpd) maxSpd = p.speed;
-    if (i > 0) {
-      const diff = p.altGPS - points[i - 1].altGPS;
-      if (diff > 0) altGain += diff;
-    }
   }
 
   const last = points[points.length - 1];
@@ -96,8 +91,21 @@ export function computeStats(points: TrackPoint[]): FlightStats {
   const totalDistance = last.distance;
 
   const vario = computeVario(points);
-  const maxClimb = Math.max(0, ...vario);
-  const maxSink = Math.min(0, ...vario);
+
+  // Single pass: maxClimb/maxSink and altitude gain from smoothed vario.
+  // Using a loop instead of Math.max/min spread avoids stack overflow on large flights.
+  // Integrating smoothed vario rather than raw GPS deltas avoids accumulating noise.
+  let maxClimb = 0;
+  let maxSink = 0;
+  let altGain = 0;
+  for (let i = 0; i < vario.length; i++) {
+    if (vario[i] > maxClimb) maxClimb = vario[i];
+    if (vario[i] < maxSink) maxSink = vario[i];
+    if (i > 0 && vario[i] > 0) {
+      const dtSec = (points[i].timestamp - points[i - 1].timestamp) / 1000;
+      altGain += vario[i] * dtSec;
+    }
+  }
 
   return {
     duration,

@@ -119,5 +119,17 @@ export function useFileSystem() {
     });
   }
 
-  return { openFolder, openFolderByPath, loadDirectory, loadFile };
+  async function loadComparedFlight(path: string, filename: string) {
+    const s = useFlightStore.getState();
+    // Guards: don't compare against itself, don't exceed limit, don't add duplicates
+    if (path === s.selectedFile) return;
+    if (s.comparedPaths.length >= 3) return;
+    if (s.comparedPaths.includes(path)) return;
+
+    await loadFlightData(path, filename, (data) => {
+      if (data) useFlightStore.getState().addComparedFlight(data, path);
+    });
+  }
+
+  return { openFolder, openFolderByPath, loadDirectory, loadFile, loadComparedFlight };
 }

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useFlightStore } from "../../stores/flightStore";
 import { fmtSpeed, fmtAlt, fmtDist } from "../../lib/units";
+import { COMPARE_HEX_COLORS } from "../../lib/compareColors";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -19,7 +20,7 @@ function formatDuration(seconds: number): string {
 }
 
 export function FlightStatsPanel() {
-  const { flightData, selectedFile, sites, speedUnit, altUnit, altitudeOffset } = useFlightStore();
+  const { flightData, comparedFlights, selectedFile, sites, speedUnit, altUnit, altitudeOffset } = useFlightStore();
   const stats = flightData?.stats;
 
   const siteName = selectedFile
@@ -139,6 +140,48 @@ export function FlightStatsPanel() {
           lineHeight: 1.4,
         }}>
           No GPS timestamps — speed, vario and trim use estimated 1 s intervals.
+        </div>
+      )}
+
+      {comparedFlights.length > 0 && (
+        <div style={{ padding: "0 8px 8px" }}>
+          <div style={{ padding: "8px 4px 6px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", color: "var(--text-secondary)" }}>
+            Comparison
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", padding: "3px 6px", color: "var(--text-muted)", fontWeight: 500 }}>Metric</th>
+                  {comparedFlights.map((cf, ci) => (
+                    <th key={ci} style={{ textAlign: "right", padding: "3px 6px", fontWeight: 600, color: COMPARE_HEX_COLORS[ci] }}>
+                      {cf.filename.replace(/\.[^.]+$/, "").slice(0, 12)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {([
+                  ["Duration",     (s: typeof stats) => s ? formatDuration(s.duration) : "—"],
+                  ["Distance",     (s: typeof stats) => s ? fmtDist(s.totalDistance, altUnit) : "—"],
+                  ["Max Alt",      (s: typeof stats) => s ? fmtAlt(s.maxAltitude, altUnit) : "—"],
+                  ["Alt Gain",     (s: typeof stats) => s ? fmtAlt(s.altitudeGain, altUnit) : "—"],
+                  ["Max Climb",    (s: typeof stats) => s ? `+${s.maxClimb.toFixed(1)} m/s` : "—"],
+                  ["Max Sink",     (s: typeof stats) => s ? `${s.maxSink.toFixed(1)} m/s` : "—"],
+                  ["Max Speed",    (s: typeof stats) => s ? fmtSpeed(s.maxSpeed, speedUnit) : "—"],
+                ] as [string, (s: typeof stats) => string][]).map(([label, fmt]) => (
+                  <tr key={label} style={{ borderTop: "1px solid var(--border)" }}>
+                    <td style={{ padding: "3px 6px", color: "var(--text-muted)" }}>{label}</td>
+                    {comparedFlights.map((cf, ci) => (
+                      <td key={ci} style={{ textAlign: "right", padding: "3px 6px", fontVariantNumeric: "tabular-nums", color: "var(--text-primary)" }}>
+                        {fmt(cf.stats)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

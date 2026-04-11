@@ -13,6 +13,8 @@ interface FlightStore {
 
   // Flight data
   flightData: FlightData | null;
+  comparedFlights: FlightData[];
+  comparedPaths: string[];
 
   // Playback
   playbackTime: number; // Unix ms — current position in the flight
@@ -63,6 +65,8 @@ interface FlightStore {
   showBakFiles: boolean;
   groupSitesByType: boolean;
   showShadowCurtain: boolean;
+  smoothFlightPath: boolean;
+  syncFilePath: string;
   pendingCameraTarget: { lat: number; lng: number; altitude: number } | null;
   activeView: "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null;
   pendingLocationSiteId: string | null;
@@ -114,6 +118,9 @@ interface FlightStore {
   toggleDir: (path: string) => void;
   setSelectedFile: (path: string | null) => void;
   setFlightData: (data: FlightData | null) => void;
+  addComparedFlight: (data: FlightData, path: string) => void;
+  removeComparedFlight: (path: string) => void;
+  clearComparedFlights: () => void;
   setPlaybackTime: (time: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -144,6 +151,8 @@ interface FlightStore {
   setShowBakFiles: (b: boolean) => void;
   setGroupSitesByType: (b: boolean) => void;
   setShowShadowCurtain: (b: boolean) => void;
+  setSmoothFlightPath: (b: boolean) => void;
+  setSyncFilePath: (p: string) => void;
   setPendingCameraTarget: (t: { lat: number; lng: number; altitude: number } | null) => void;
   setActiveView: (v: "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null) => void;
   setPendingLocationSiteId: (id: string | null) => void;
@@ -161,6 +170,8 @@ export const useFlightStore = create<FlightStore>((set) => ({
   expandedDirs: new Set<string>(),
   selectedFile: null,
   flightData: null,
+  comparedFlights: [],
+  comparedPaths: [],
   playbackTime: 0,
   playbackSpeed: 20,
   isPlaying: false,
@@ -196,6 +207,8 @@ export const useFlightStore = create<FlightStore>((set) => ({
   showBakFiles: false,
   groupSitesByType: false,
   showShadowCurtain: false,
+  smoothFlightPath: false,
+  syncFilePath: "",
   pendingCameraTarget: null,
   activeView: "explorer" as "explorer" | "locations" | "sites" | "logbook" | "layers" | "settings" | null,
   pendingLocationSiteId: null,
@@ -258,12 +271,29 @@ export const useFlightStore = create<FlightStore>((set) => ({
   setFlightData: (data) =>
     set({
       flightData: data,
+      comparedFlights: [],
+      comparedPaths: [],
       playbackTime: data?.points[0]?.timestamp ?? 0,
       isPlaying: false,
       isStopped: true,
       altitudeOffset: 0,
       launchTerrainAlt: null,
     }),
+  addComparedFlight: (data, path) =>
+    set((s) => ({
+      comparedFlights: [...s.comparedFlights, data],
+      comparedPaths: [...s.comparedPaths, path],
+    })),
+  removeComparedFlight: (path) =>
+    set((s) => {
+      const idx = s.comparedPaths.indexOf(path);
+      if (idx === -1) return s;
+      return {
+        comparedFlights: s.comparedFlights.filter((_, i) => i !== idx),
+        comparedPaths: s.comparedPaths.filter((_, i) => i !== idx),
+      };
+    }),
+  clearComparedFlights: () => set({ comparedFlights: [], comparedPaths: [] }),
   setPlaybackTime: (time) => set({ playbackTime: time }),
   setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
   setIsPlaying: (playing) => set((s) => ({
@@ -308,6 +338,8 @@ export const useFlightStore = create<FlightStore>((set) => ({
   setShowBakFiles: (b) => set({ showBakFiles: b }),
   setGroupSitesByType: (b) => set({ groupSitesByType: b }),
   setShowShadowCurtain: (b) => set({ showShadowCurtain: b }),
+  setSmoothFlightPath: (b) => set({ smoothFlightPath: b }),
+  setSyncFilePath: (p) => set({ syncFilePath: p }),
   setPendingCameraTarget: (t) => set({ pendingCameraTarget: t }),
   setActiveView: (v) => set({ activeView: v, ...(v === "logbook" ? { selectedLogbookEntry: null } : {}) }),
   setPendingLocationSiteId: (id) => set({ pendingLocationSiteId: id }),

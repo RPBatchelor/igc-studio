@@ -1,10 +1,13 @@
-import { Component, useEffect, type ReactNode } from "react";
+import { Component, useEffect, useRef, type ReactNode } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { PanelLayout } from "./components/layout/PanelLayout";
 import { loadSettings, loadSecrets, saveSettings } from "./lib/settingsDb";
 import { loadAirspaceCache, checkAirspaceVersion } from "./lib/airspaceApi";
 import { loadSgZonesCache } from "./lib/sgZonesApi";
-import { loadFlightNotesDb } from "./lib/flightNotesDb";
+import { loadFlightNotesDb, saveFlightNotesDb } from "./lib/flightNotesDb";
+import { loadSiteDb, saveSiteDb } from "./lib/siteDb";
+import { buildBundle, applyBundle, serializeBundle, parseBundle } from "./lib/portableSettings";
 import { useFileSystem } from "./hooks/useFileSystem";
 import { useFlightStore } from "./stores/flightStore";
 
@@ -49,14 +52,20 @@ function AppInner() {
     setAirspaces, setAirspacesFetchedAt,
     setSgZones, setSgZonesFetchedAt,
     setRememberLastFolder, setShowCameraOverlay, setShowFullFilename, setShowBakFiles, setGroupSitesByType,
+    setShowShadowCurtain, setSmoothFlightPath, setSyncFilePath,
     toggleOverlay, setFlightNotesDb,
-    theme, rootFolder,
+    theme, rootFolder, syncFilePath, flightNotesDb, siteDb,
   } = useFlightStore();
+
+  const writeBundleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { openFolderByPath } = useFileSystem();
 
   useEffect(() => {
-    loadSettings().then((s) => {
+    (async () => {
+      const s = await loadSettings();
+
+      // Apply local settings first
       if (s.zoomAltitude)        setZoomAltitude(s.zoomAltitude);
       if (s.theme)               setTheme(s.theme);
       if (s.speedUnit)           setSpeedUnit(s.speedUnit);
@@ -67,19 +76,54 @@ function AppInner() {
       setShowFullFilename(s.showFullFilename ?? false);
       setShowBakFiles(s.showBakFiles ?? false);
       setGroupSitesByType(s.groupSitesByType ?? false);
+      setShowShadowCurtain(s.showShadowCurtain ?? false);
+      setSmoothFlightPath(s.smoothFlightPath ?? false);
+      if (s.syncFilePath)        setSyncFilePath(s.syncFilePath);
       for (const id of (s.activeOverlays ?? [])) toggleOverlay(id as import("./parsers/types").OverlayId);
 
-      // Restore last folder if enabled
-      if (s.rememberLastFolder && s.lastFolderPath) {
-        openFolderByPath(s.lastFolderPath).catch(() => {
-          // Folder no longer accessible — silently ignore
-        });
+      // If a sync file is configured, read the bundle and merge over local settings
+      if (s.syncFilePath) {
+        try {
+          const text = await invoke<string>("read_file_text", { path: s.syncFilePath });
+          const bundle = parseBundle(text);
+          if (bundle) {
+            const localNotes = await loadFlightNotesDb();
+            const localSiteDb = await loadSiteDb();
+            const result = applyBundle(bundle, s.lastFolderPath || null, localNotes, localSiteDb);
+
+            // Apply bundled settings (override local)
+            const bs = result.settings;
+            if (bs.theme)               setTheme(bs.theme);
+            if (bs.speedUnit)           setSpeedUnit(bs.speedUnit);
+            if (bs.altUnit)             setAltUnit(bs.altUnit);
+            if (bs.zoomAltitude)        setZoomAltitude(bs.zoomAltitude);
+            setShowCameraOverlay(bs.showCameraOverlay ?? s.showCameraOverlay);
+            setRememberLastFolder(bs.rememberLastFolder ?? s.rememberLastFolder);
+            setShowFullFilename(bs.showFullFilename ?? s.showFullFilename);
+            setShowBakFiles(bs.showBakFiles ?? s.showBakFiles);
+            setGroupSitesByType(bs.groupSitesByType ?? s.groupSitesByType);
+            setShowShadowCurtain(bs.showShadowCurtain ?? s.showShadowCurtain);
+            setSmoothFlightPath(bs.smoothFlightPath ?? s.smoothFlightPath);
+
+            // Persist merged notes and site renames
+            await saveFlightNotesDb(result.notesDb);
+            setFlightNotesDb(result.notesDb);
+            await saveSiteDb(result.siteDb);
+          }
+        } catch {
+          // Sync file unreadable (missing or corrupt) — continue with local settings
+        }
       }
-    });
-    loadSecrets().then((s) => {
-      if (s.cesiumIonToken) setCesiumIonToken(s.cesiumIonToken);
-      if (s.bingMapsKey)    setBingMapsKey(s.bingMapsKey);
-    });
+
+      // Restore last folder if enabled (after bundle applied so we have the merged notes)
+      if (s.rememberLastFolder && s.lastFolderPath) {
+        openFolderByPath(s.lastFolderPath).catch(() => {});
+      }
+
+      const sec = await loadSecrets();
+      if (sec.cesiumIonToken) setCesiumIonToken(sec.cesiumIonToken);
+      if (sec.bingMapsKey)    setBingMapsKey(sec.bingMapsKey);
+    })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist last-opened folder whenever rootFolder changes
@@ -98,10 +142,36 @@ function AppInner() {
       showFullFilename:   s.showFullFilename,
       showBakFiles:       s.showBakFiles,
       groupSitesByType:   s.groupSitesByType,
+      showShadowCurtain:  s.showShadowCurtain,
+      smoothFlightPath:   s.smoothFlightPath,
+      syncFilePath:       s.syncFilePath,
       activeOverlays:     Array.from(s.overlays),
       lastFolderPath:     rootFolder,
     });
   }, [rootFolder]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced write-back to sync file whenever syncable state changes
+  useEffect(() => {
+    if (!syncFilePath) return;
+    if (writeBundleTimer.current) clearTimeout(writeBundleTimer.current);
+    writeBundleTimer.current = setTimeout(async () => {
+      try {
+        const s = useFlightStore.getState();
+        const currentSiteDb = await loadSiteDb();
+        const bundle = buildBundle(s.rootFolder, {
+          theme: s.theme, zoomAltitude: s.zoomAltitude, speedUnit: s.speedUnit, altUnit: s.altUnit,
+          airspaceUrl: s.airspaceUrl, rememberLastFolder: s.rememberLastFolder, lastFolderPath: s.rootFolder ?? "",
+          showCameraOverlay: s.showCameraOverlay, showFullFilename: s.showFullFilename,
+          showBakFiles: s.showBakFiles, groupSitesByType: s.groupSitesByType,
+          showShadowCurtain: s.showShadowCurtain, smoothFlightPath: s.smoothFlightPath,
+          syncFilePath: s.syncFilePath, activeOverlays: Array.from(s.overlays),
+        }, s.flightNotesDb, currentSiteDb, __APP_VERSION__);
+        await invoke("write_file_text", { path: syncFilePath, content: serializeBundle(bundle) });
+      } catch {
+        // Write failed (e.g. file on disconnected drive) — silently skip
+      }
+    }, 800);
+  }, [syncFilePath, flightNotesDb, siteDb]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load airspace from cache on startup, then silently check for updates
   useEffect(() => {

@@ -22,6 +22,10 @@ export interface AppSettings {
   showBakFiles: boolean;
   groupSitesByType: boolean;
   activeOverlays: string[]; // serialised Set<OverlayId>
+  showShadowCurtain: boolean;
+  smoothFlightPath: boolean;
+  /** Absolute path to the portable settings bundle file. Device-local — not included in the bundle itself. */
+  syncFilePath: string;
 }
 
 const DEFAULT_SECRETS: AppSecrets = { cesiumIonToken: "", bingMapsKey: "" };
@@ -38,6 +42,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   showBakFiles: false,
   groupSitesByType: false,
   activeOverlays: [],
+  showShadowCurtain: false,
+  smoothFlightPath: false,
+  syncFilePath: "",
 };
 
 let baseDir: string | null = null;

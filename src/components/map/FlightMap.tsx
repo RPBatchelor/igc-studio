@@ -6,6 +6,7 @@ import { sgZoneStyle, sgZoneDisplayName, ZONE_DISPLAY_NAMES } from "../../lib/sg
 import { useCesiumViewer } from "./hooks/useCesiumViewer";
 import { useImageryLayers } from "./hooks/useImageryLayers";
 import { useFlightTrack } from "./hooks/useFlightTrack";
+import { useComparedTracks } from "./hooks/useComparedTracks";
 import { useMapOverlays } from "./hooks/useMapOverlays";
 
 export function FlightMap() {
@@ -16,6 +17,7 @@ export function FlightMap() {
 
   useImageryLayers(viewerRef);
   useFlightTrack(viewerRef);
+  useComparedTracks(viewerRef);
   const { zoneTooltip } = useMapOverlays(viewerRef);
 
   const { flightData, overlays, sgZones, showCameraOverlay, altUnit } = useFlightStore();
