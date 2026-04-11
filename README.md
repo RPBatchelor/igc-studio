@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/RPBatchelor/igc-studio/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/RPBatchelor/igc-studio?style=flat-square" /></a>
+  <img alt="Version" src="https://img.shields.io/badge/version-0.5.0-blue?style=flat-square" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-blue?style=flat-square" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green?style=flat-square" />
 </p>
@@ -19,6 +20,8 @@
 IGC Studio is a free, open-source desktop app for paraglider and hang glider pilots to browse, replay, and analyse flight logs. It runs entirely offline — no accounts, no cloud uploads, no subscriptions.
 
 Load an `.igc` or `.kml` file and immediately see your flight on a 3D terrain map with altitude-gradient colouring, full statistics, interactive charts, and an animated timeline scrubber. Open a folder of years of flights and IGC Studio clusters them into launch sites automatically, so you can explore your history by location rather than digging through folders.
+
+Overlay up to three flights simultaneously to compare days, gliders, or pilots. Keep settings, site names, and flight adjustments in sync across multiple devices by pointing to a file on OneDrive or Dropbox — no account needed.
 
 ---
 
@@ -77,12 +80,22 @@ At-a-glance stats for the loaded flight: duration, distance, max altitude, max c
 ### Map & Visualisation
 - **3D globe** — interactive CesiumJS globe; satellite, topo, street, and canvas base layers
 - **Altitude-gradient flight track** — polyline colour-coded from low (blue) to high (red) rendered at GPS altitude
+- **Smooth Flight Path** — optional Catmull-Rom spline interpolation between GPS fixes eliminates the angular look on 1 Hz or slower loggers; adaptive subdivision capped at 8 000 rendered points
 - **Animated pilot marker** — dot interpolates along the track in sync with the timeline
 - **Shadow curtain** — semi-transparent vertical wall trails behind the glider during playback, showing the ground track and altitude profile simultaneously
 - **3D terrain** — Cesium World Terrain elevation model (requires a free Cesium Ion token)
 - **Multiple base layers** — ESRI Satellite, ESRI Topo, National Geographic, OpenTopoMap, OpenStreetMap, Bing Aerial, Bing Roads, ESRI Light/Dark Grey, Carto Light/Dark
 - **Road overlay** — ESRI road layer on top of any base
 - **Map controls** — zoom, reset north, fly-to-flight
+
+### Flight Comparison
+- **Overlay up to 3 flights** — add any flight from Explorer or Locations with the **+** button on hover
+- **Colour-coded comparison tracks** — sky blue, mint green, and amber; solid lines to distinguish from the primary vario-gradient track
+- **Elapsed-time sync** — all pilot markers advance from their own launch time at the same rate during playback; a shorter comparison flight clamps its marker at its last point
+- **Comparison charts** — dashed series added to altitude, speed, and vario charts for each comparison flight, x-axis aligned to elapsed time
+- **Comparison stats table** — duration, distance, max altitude, altitude gain, climb/sink, and speed shown side-by-side in the right panel
+- **Slot indicators** — coloured dot on the file row when a flight is already loaded for comparison; + button disabled when three slots are full
+- **Auto-clear** — loading a new primary flight removes all comparison tracks
 
 ### Airspace
 - **Australian airspace** — downloads the current OpenAir dataset from [xcaustralia.org](https://xcaustralia.org/download/); 3D extruded polygons colour-coded by class (CTR = red, Class D = blue, Restricted = orange, etc.)
@@ -123,13 +136,24 @@ At-a-glance stats for the loaded flight: duration, distance, max altitude, max c
 - **Play / pause** with variable speed (1× – 50×)
 - **Jump to start / end**
 
+### Portable Settings (Cross-Device Sync)
+- **Single JSON bundle** — preferences, site renames, site guide details, and per-flight notes and altitude offsets in one file
+- **Works with any cloud storage** — drop the file in OneDrive, Dropbox, Google Drive, or Syncthing; no account or server required
+- **Auto write-back** — bundle updates automatically (800 ms debounce) whenever you change a setting, rename a site, or adjust a flight
+- **Startup merge** — on launch, bundle preferences override local settings; notes and site renames are merged additively so neither device loses data
+- **Cross-device path handling** — flight notes are stored as root-relative paths so the bundle works even when the flights folder is mounted at a different drive letter on another machine
+- **API keys excluded** — Cesium Ion and Bing Maps tokens are never written to the bundle
+
 ### Settings & Customisation
 - Dark / light theme
 - Default zoom altitude
 - Reopen last folder on startup
+- Shadow Curtain and Smooth Flight Path toggles (Playback section)
 - Cesium Ion token (enables 3D terrain)
 - Bing Maps key (enables Bing imagery layers)
 - Airspace source URL
+- Portable Settings — sync file path configuration with Browse, Create, and Import controls
+- About section showing current version and link to GitHub
 - All settings persisted locally; API keys stored in a separate `.secrets` file excluded from git
 
 ---
@@ -195,18 +219,25 @@ igc-studio/
 │   │   ├── explorer/             # FileExplorer, LocationsPanel, MapLayers
 │   │   ├── layout/               # PanelLayout, custom title bar
 │   │   ├── logbook/              # LogbookView, LogbookPanel, LogbookTimeline
-│   │   ├── map/                  # FlightMap (CesiumJS) + hooks
+│   │   ├── map/                  # FlightMap (CesiumJS)
+│   │   │   ├── hooks/            # useCesiumViewer, useFlightTrack,
+│   │   │   │                     #   useComparedTracks, useImageryLayers,
+│   │   │   │                     #   useMapOverlays
+│   │   │   └── lib/              # trackColors, imageryProviders, compareColors
 │   │   ├── search/               # GlobalSearch palette
+│   │   ├── settings/             # SettingsView
 │   │   ├── sites/                # SiteInfoPanel, SiteInfoEditor, SiteFiltersPanel
 │   │   ├── stats/                # FlightStats, FlightCharts, FlightNotes,
 │   │   │                         #   FlightAltitudeCorrection, FlightTrim
 │   │   └── timeline/             # TimelineScrubber
 │   ├── hooks/                    # useFileSystem, useFlightAnimation
 │   ├── lib/                      # airspaceApi, airspaceParser, sgZonesApi,
-│   │                             #   flightLoader, flightTrimmer, settingsDb,
+│   │                             #   compareColors, flightLoader, flightTrimmer,
+│   │                             #   interpolate, portableSettings, settingsDb,
 │   │                             #   siteDb, siteScanner, stats, tilePrefetch
 │   ├── parsers/                  # IGC & KML parsers, shared TypeScript types
-│   └── stores/                   # Zustand global store (flightStore)
+│   ├── stores/                   # Zustand global store (flightStore)
+│   └── types/                    # globals.d.ts (Vite injected constants)
 └── src-tauri/                    # Tauri v2 Rust backend
     ├── src/
     │   └── commands/fs.rs        # read_directory, read_file_text,
@@ -235,11 +266,12 @@ igc-studio/
 ## Roadmap
 
 - [ ] XC scoring and triangle detection
-- [ ] Flight comparison — overlay multiple tracks simultaneously
 - [ ] Thermal map overlay (kk7.ch)
 - [ ] Export to GPX / KMZ
 - [ ] macOS and Linux builds
 - [ ] Code signing for Windows (no SmartScreen warning)
+- [ ] GPX and KMZ import
+- [ ] Per-flight tags and logbook filtering
 
 ---
 
